@@ -1,4 +1,4 @@
-<plugin id="org.dita4publishers.adjust-copy-to">
+<plugin id="org.dita-community.adjust-copy-to">
   <!-- 
     
    Post processes the resolve map (output of the mappull preprocess step)

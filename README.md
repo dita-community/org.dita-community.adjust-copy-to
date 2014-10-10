@@ -1,5 +1,5 @@
-org.dita4publishers.adjust-copy-to
-======================
+org.dita-community.adjust-copy-to
+=================================
 
 Post processes the resolve map (output of the mappull preprocess step)
 in order to add additional copy-to values in order to ensure unique
