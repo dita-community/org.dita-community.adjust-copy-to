@@ -147,6 +147,9 @@
         <mapItem>
           <key><xsl:sequence select="current-grouping-key()"></xsl:sequence></key>
           <value>
+            <!-- Value is a sequence of <copy-to> elements that relate topicrefs by generated ID
+                 to the @copy-to value to use on that topicref.
+              -->
             <xsl:apply-templates select="current-group()" mode="makeCopyToMap">
               <xsl:with-param name="topicrefsForTopic" as="element()+" tunnel="yes"
                 select="current-group()"
@@ -165,13 +168,15 @@
     <xsl:variable name="copytoValue">
       <xsl:apply-templates select="." mode="determineCopytoValue"/>
     </xsl:variable>
-    <!-- Within the value of the topicToCopyTomap, defines the @copy-to value
-         to use for the current topicref.
+    <!-- If the copy-to value is empty, then don't create an item for this
+         topicref.
       -->
-    <copyTo 
-      topicrefId="{generate-id(.)}" 
-      copy-to="{normalize-space($copytoValue)}"
-    />
+    <xsl:if test="$copytoValue != ''">
+      <copyTo 
+        topicrefId="{generate-id(.)}" 
+        copy-to="{normalize-space($copytoValue)}"
+      />
+    </xsl:if>
   </xsl:template>
   
   <!-- ==================================
@@ -203,8 +208,7 @@
       select="$topicrefsForTopic[. &lt;&lt; $thisTopicref]"
     />
     <xsl:if test="$doDebug">
-      <xsl:message> + [DEBUG] determineCopytoValue: thisTopicref      =<xsl:sequence select="$thisTopicref"/></xsl:message>
-      <xsl:message> + [DEBUG] determineCopytoValue: precedingTopicrefs=<xsl:sequence select="$precedingTopicrefs"/></xsl:message>
+      <!-- Put debug messages here -->
     </xsl:if>
     <xsl:choose>
       <xsl:when test="count($precedingTopicrefs) = 0">
@@ -259,6 +263,21 @@
   <!-- ==================================
        Default templates
        ================================== -->
+  
+  <xsl:template match="*[df:class(., 'map/topicref')]">
+    <xsl:param name="topicToCopyToMap" as="element()" tunnel="yes"/>
+    <xsl:variable name="copyToAtt" as="attribute()?">
+      <xsl:variable name="topicrefID" as="xs:string" select="generate-id(.)" />
+      <xsl:variable name="copyToItem" as="element()?"
+        select="$topicToCopyToMap//copyTo[@topicrefId = $topicrefID]"
+      />
+      <xsl:sequence select="$copyToItem/@copy-to"/>
+    </xsl:variable>
+    <xsl:copy>
+      <xsl:apply-templates select="@*, $copyToAtt, node()"/>
+    </xsl:copy>
+    
+  </xsl:template>
   
   <xsl:template match="text() | processing-instruction() | comment() | @*">
     <xsl:sequence select="."/>
