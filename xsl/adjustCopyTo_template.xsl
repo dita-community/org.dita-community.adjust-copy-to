@@ -39,9 +39,9 @@
  
        ====================================================== -->
   
-  <xsl:import href="dp4AdjustCopyToImpl.xsl"/>
+  <xsl:import href="adjustCopyToImpl.xsl"/>
   
-  <dita:extension id="xsl.d4pAdjustCopyTo" 
+  <dita:extension id="xsl.dcAdjustCopyTo" 
     behavior="org.dita.dost.platform.ImportXSLAction" 
     xmlns:dita="http://dita-ot.sourceforge.net"/>
   

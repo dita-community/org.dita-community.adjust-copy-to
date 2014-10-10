@@ -8,31 +8,35 @@
        by adding a process to adjust the @copy-to 
        values to ensure unique topics or control
        deliverable-specific anchor IDs (e.g., HTML filenames).
-       ==========================================
+       ========================================== -->
   
-    <target name="d4p-preprocess" description="D4P-specific preprocessing"
+    <target name="dc-preprocess" description="DITA Community preprocessing extensions"
       depends="
-      gen-list,
-      debug-filter,
-      copy-files,
-      conrefpush,
-      conref,
-      move-meta-entries,
-      keyref,
-      coderef,
-      mapref,
-      mappull,
-      d4p-adjust-copy-to,
-      chunk,
-      maplink,
-      move-links,
-      topicpull,
-      flag-module"
+gen-list,
+debug-filter,
+copy-files,
+conrefpush,
+conref,
+move-meta-entries,
+keyref,
+coderef,
+mapref,
+mappull,
+dc-adjust-copy-to,
+chunk,
+maplink,
+move-links,
+topicpull,
+flag-module"
       >
       <!-- This target replaces the base OT preprocess. 
       
            Adds D4P adjust copy-to processing after mappull step.
       -->
+    </target>
+  
+    <target name="dc-adjust-copy-to">
+      
     </target>
 
 </project>
