@@ -134,6 +134,8 @@
           <xsl:message> + [DEBUG] topicref: grouping-key="<xsl:sequence select="current-grouping-key()"/>", href="<xsl:sequence select="string(current-group()[1]/@href)"/>"
           </xsl:message>
         </xsl:if>
+        <xsl:message> + [INFO] makeCopyToMap: Handling <xsl:value-of select="count(current-group())"/> topicrefs to topic <xsl:value-of
+                               select="@href"/></xsl:message>
         <mapItem>
           <key><xsl:sequence select="current-grouping-key()"></xsl:sequence></key>
           <value>
@@ -202,6 +204,8 @@
     </xsl:if>
     <xsl:choose>
       <xsl:when test="count($precedingTopicrefs) = 0">
+        <xsl:message> + [INFO]     First reference and no @copy-to attribute. Not setting @copy-to.</xsl:message>
+
         <xsl:value-of select="''"/><!-- First topicref to the topic, no copy-to value -->
       </xsl:when>
       <xsl:otherwise>
@@ -214,6 +218,8 @@
         <xsl:choose>
           <xsl:when test="@copy-to != '' and 
                 (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
+                  <xsl:message> + [INFO]     Using existing copy-to value "<xsl:value-of select="$thisCopyTo"/>".</xsl:message>
+
             <xsl:sequence select="string(@copy-to)"/>
           </xsl:when>
           <xsl:otherwise>
@@ -241,7 +247,9 @@
                          then relpath:getParent($thisCopyTo)
                          else relpath:getParent(@href)"
             />
-            <xsl:value-of select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
+            <xsl:variable name="copytoValue" select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
+            <xsl:message> + [INFO]     Setting copy-to to "<xsl:value-of select="$copytoValue"/>".</xsl:message>
+            <xsl:value-of select="$copytoValue"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:otherwise>
