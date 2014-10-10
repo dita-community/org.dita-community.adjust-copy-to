@@ -64,9 +64,14 @@
     select="matches($expand-reltable-refs, 'yes|true|on|1', 'i')"
   />
   
+  <xsl:param name="debug" as="xs:string" select="'false'"/>
+  <xsl:variable name="doDebug" as="xs:boolean"
+    select="matches($debug, 'yes|true|on|1', 'i')"
+  />
+  
   <xsl:template match="/">
     
-    <xsl:variable name="doDebug" as="xs:boolean" select="true()"/>
+    <xsl:variable name="doDebug" as="xs:boolean" select="true() or $doDebug"/>
     
     <xsl:variable name="jobXml" as="document-node()"
       select="document($job.xml)"
@@ -80,18 +85,26 @@
          points to a given topic.
       -->
     <xsl:variable name="topicToCopyToMap" as="element()">
-      <xsl:apply-templates mode="makeCopyToMap"/>
+      <xsl:apply-templates mode="makeCopyToMap">
+        <xsl:with-param name="doDebug" as="xs:boolean" select="true() or $doDebug" tunnel="yes"/>
+      </xsl:apply-templates>
     </xsl:variable>
     
     <xsl:if test="$doDebug">
-      <xsl:message> + [DEBUG] topicToCopyToMap: <xsl:sequence select="$topicToCopyToMap"/></xsl:message>
+      <xsl:result-document href="{relpath:newFile(relpath:getParent(document-uri(root(.))), 'topicToCopyToMap.xml')}"
+        method="xml"
+        indent="yes"
+        >
+        <xsl:sequence select="$topicToCopyToMap"/>
+      </xsl:result-document>
     </xsl:if>
     
     <!-- Do the result document processing: -->
     <xsl:apply-templates select="node()">
+      <xsl:with-param name="doDebug" as="xs:boolean" select="$doDebug" tunnel="yes"/>
       <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
         select="$topicToCopyToMap"
-      />
+      />      
     </xsl:apply-templates>
   </xsl:template>
   
@@ -100,6 +113,8 @@
        ================================== -->
   
   <xsl:template match="/*" mode="makeCopyToMap">
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+
     <topicToCopyToMap>
       <!-- Group topicrefs to topics by
            absolute URL of the topic referenced.
@@ -132,7 +147,11 @@
         <mapItem>
           <key><xsl:sequence select="current-grouping-key()"></xsl:sequence></key>
           <value>
-            <xsl:apply-templates select="current-group()" mode="makeCopyToMap"/>
+            <xsl:apply-templates select="current-group()" mode="makeCopyToMap">
+              <xsl:with-param name="topicrefsForTopic" as="element()+" tunnel="yes"
+                select="current-group()"
+              />
+            </xsl:apply-templates>
           </value>
         </mapItem>
       </xsl:for-each-group>      
@@ -140,11 +159,103 @@
   </xsl:template>
   
   <xsl:template mode="makeCopyToMap" match="*[df:class(., 'map/topicref')]">
-    <topicref generatedId="{generate-id(.)}">
-      <xsl:sequence select="@*"/>
-    </topicref>
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
+    
+    <xsl:variable name="copytoValue">
+      <xsl:apply-templates select="." mode="determineCopytoValue"/>
+    </xsl:variable>
+    <!-- Within the value of the topicToCopyTomap, defines the @copy-to value
+         to use for the current topicref.
+      -->
+    <copyTo 
+      topicrefId="{generate-id(.)}" 
+      copy-to="{normalize-space($copytoValue)}"
+    />
   </xsl:template>
   
+  <!-- ==================================
+       Mode  determineCopytoValue
+       
+       Handles topicrefs in the context of all
+       topicrefs to a single topic. Determines
+       the value to use for the @copy-to attribute
+       of the topicref.
+       
+       Override templates in this mode to customize
+       the copy-to values.
+       ================================== -->
+  
+  <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')]">
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    
+    <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
+    
+    <!-- Default implementation: Ensure result filename is unique by adding number
+         to the base filename.
+      -->
+    
+    <!-- In the resolved map the @href value is always present and is the relative
+         path to the topic.
+      -->
+    <xsl:variable name="thisTopicref" as="element()" select="."/>
+    <xsl:variable name="precedingTopicrefs" as="element()*"
+      select="$topicrefsForTopic[. &lt;&lt; $thisTopicref]"
+    />
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] determineCopytoValue: thisTopicref      =<xsl:sequence select="$thisTopicref"/></xsl:message>
+      <xsl:message> + [DEBUG] determineCopytoValue: precedingTopicrefs=<xsl:sequence select="$precedingTopicrefs"/></xsl:message>
+    </xsl:if>
+    <xsl:choose>
+      <xsl:when test="count($precedingTopicrefs) = 0">
+        <xsl:value-of select="''"/><!-- First topicref to the topic, no copy-to value -->
+      </xsl:when>
+      <xsl:otherwise>
+        <!-- If there's already a copy-to on the topicref and it hasn't already been used, 
+             use it, otherwise, construct a new value.
+        -->
+        <xsl:variable name="thisCopyTo" as="xs:string"
+          select="if (@copy-to) then @copy-to else ''"
+        />
+        <xsl:choose>
+          <xsl:when test="@copy-to != '' and 
+                (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
+            <xsl:sequence select="string(@copy-to)"/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:variable name="ordinal" as="xs:integer" select="count($precedingTopicrefs) + 1"/>
+            <xsl:variable name="countPicture" as="xs:string"
+              select="if ($ordinal gt 999) then '0000'
+                      else if ($ordinal gt 99) then '000'
+                      else if ($ordinal gt 9) then '00'
+                      else '00'
+              "
+            />
+            <xsl:variable name="count"            
+              as="xs:string"
+              select="format-number($ordinal, $countPicture)"
+            />
+            <xsl:variable name="namePart" as="xs:string" 
+              select="if ($thisCopyTo != '') 
+                         then relpath:getNamePart($thisCopyTo)
+                         else relpath:getNamePart(@href)" 
+              
+            />
+            <xsl:variable name="ext" select="relpath:getExtension(@href)" as="xs:string"/>
+            <xsl:variable name="dir" as="xs:string"
+              select="if ($thisCopyTo != '') 
+                         then relpath:getParent($thisCopyTo)
+                         else relpath:getParent(@href)"
+            />
+            <xsl:value-of select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
+    
+    
+  </xsl:template>
+
   <!-- ==================================
        Default templates
        ================================== -->
