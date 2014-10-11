@@ -61,6 +61,15 @@
     select="matches($expand-reltable-refs, 'yes|true|on|1', 'i')"
   />
   
+  <!-- Absolute path to the directory containing the job.xml.dir (normally the dita temp dir) -->
+  <xsl:param name="job.xml.dir.url" as="xs:string"/><!-- URL of directory containing .job.xml file -->
+  <xsl:param name="copyToChangesJob.filename" as="xs:string"/>
+  <xsl:param name="updatedJob.filename" as="xs:string"/>
+  
+  <xsl:variable name="jobXmlDoc" as="document-node()"
+    select="document(relpath:newFile($job.xml.dir.url, '.job.xml'))"
+  />
+
   <xsl:param name="debug" as="xs:string" select="'false'"/>
   <xsl:variable name="doDebug" as="xs:boolean"
     select="matches($debug, 'yes|true|on|1', 'i')"
@@ -68,7 +77,7 @@
   
   <xsl:template match="/">
     
-    <xsl:variable name="doDebug" as="xs:boolean" select="true() or $doDebug"/>
+    <xsl:variable name="doDebug" as="xs:boolean" select="$doDebug"/>
     
     <!-- Map of topics to their copy-to values. Also 
          captures the set of navigation topicrefs that
@@ -76,7 +85,7 @@
       -->
     <xsl:variable name="topicToCopyToMap" as="element()">
       <xsl:apply-templates mode="makeCopyToMap">
-        <xsl:with-param name="doDebug" as="xs:boolean" select="true() or $doDebug" tunnel="yes"/>
+        <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
       </xsl:apply-templates>
     </xsl:variable>
     
@@ -89,7 +98,17 @@
       </xsl:result-document>
     </xsl:if>
     
-    <!-- Do the result document processing: -->
+    <!-- Now we know about any new or changed copy-tos.
+      
+         Update the map, generate a temporary job XML file, and
+         update the full job XML file.
+      -->
+    
+    <xsl:apply-templates mode="makeJobFiles" select="$topicToCopyToMap">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+    </xsl:apply-templates>
+    
+    <!-- Generate the updated DITA map: -->
     <xsl:apply-templates select="node()">
       <xsl:with-param name="doDebug" as="xs:boolean" select="$doDebug" tunnel="yes"/>
       <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
@@ -158,15 +177,24 @@
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
     
     <xsl:variable name="copytoValue">
+      <!-- Must be '' for unchanged or unset copy-to. Must have a value
+           for new or modified copy-to values.
+        -->
       <xsl:apply-templates select="." mode="determineCopytoValue"/>
     </xsl:variable>
     <!-- If the copy-to value is empty, then don't create an item for this
          topicref.
       -->
     <xsl:if test="$copytoValue != ''">
+      <!-- If a topicref did not have a @copy-to value, then this must
+           be a new copy-to otherwise it must be an updated. Unchanged
+           copy-to values should not get here.
+        -->
+        
       <copyTo 
         topicrefId="{generate-id(.)}" 
         copy-to="{normalize-space($copytoValue)}"
+        isNew="{not(@copy-to)}"        
       />
     </xsl:if>
   </xsl:template>
@@ -185,8 +213,14 @@
   
   <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')]">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
-    
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
+    
+    <!-- Needs to return a non-empty string if the copy-to value is being set
+         or modified.
+         
+         Return '' if the copy-to value is either unchanged or no value is being
+         set.
+      -->
     
     <!-- Default implementation: Ensure result filename is unique by adding number
          to the base filename.
@@ -204,8 +238,7 @@
     </xsl:if>
     <xsl:choose>
       <xsl:when test="count($precedingTopicrefs) = 0">
-        <xsl:message> + [INFO]     First reference and no @copy-to attribute. Not setting @copy-to.</xsl:message>
-
+        <xsl:message> + [INFO]     First reference. Not adjusting @copy-to.</xsl:message>
         <xsl:value-of select="''"/><!-- First topicref to the topic, no copy-to value -->
       </xsl:when>
       <xsl:otherwise>
@@ -217,12 +250,13 @@
         />
         <xsl:choose>
           <xsl:when test="@copy-to != '' and 
-                (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
-                  <xsl:message> + [INFO]     Using existing copy-to value "<xsl:value-of select="$thisCopyTo"/>".</xsl:message>
+                          (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
+                  <xsl:message> + [INFO]     Existing topicref value "<xsl:value-of select="@copy-to"/>" is fine. Not adjusting.</xsl:message>
 
-            <xsl:sequence select="string(@copy-to)"/>
+            <xsl:sequence select="''"/>
           </xsl:when>
           <xsl:otherwise>
+            <!-- Adjusting the copy-to value. -->
             <xsl:variable name="ordinal" as="xs:integer" select="count($precedingTopicrefs) + 1"/>
             <xsl:variable name="countPicture" as="xs:string"
               select="if ($ordinal gt 999) then '0000'
@@ -257,6 +291,112 @@
     
     
   </xsl:template>
+  
+  <!-- ==================================
+       Mode makeJobFiles
+       ================================== -->
+  
+  <xsl:template mode="makeJobFiles" match="*">
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] makeJobFiles: Handling <xsl:value-of select="name(.)"/> element...</xsl:message>
+    </xsl:if>
+    
+    <xsl:variable name="changesUrl" as="xs:string"
+      select="relpath:newFile($job.xml.dir.url, $copyToChangesJob.filename)"
+    />
+    
+    <xsl:message> + [INFO] makeJobFiles: Generating copyToChangesJob file: <xsl:value-of select="$changesUrl"/> </xsl:message>
+    <xsl:result-document href="{$changesUrl}"
+      method="xml" indent="no"
+      >
+      <job>
+      <!-- Generate minimal job.xml file. -->
+      </job>
+    </xsl:result-document>
+    
+    <xsl:variable name="updatedJobUrl" as="xs:string"
+      select="relpath:newFile($job.xml.dir.url, $updatedJob.filename)"
+    />
+    
+    <xsl:message> + [INFO] makeJobFiles: Generating updatedJob file: <xsl:value-of select="$updatedJobUrl"/> </xsl:message>
+
+    <xsl:result-document href="{$updatedJobUrl}"
+      method="xml" indent="no"
+      >
+      <!-- Update the job.xml file with the new and updated copy-to entries. -->
+      <xsl:apply-templates select="$jobXmlDoc/*" mode="updateJobXml">
+        <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+        <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
+                    select="."
+        />      
+      </xsl:apply-templates>
+    </xsl:result-document>
+
+  </xsl:template>
+  
+  <!-- ==================================
+       Mode updateJobXml
+       ================================== -->
+  
+  <xsl:template match="property[@name= 'copytotarget2sourcemaplist']/map" mode="updateJobXml">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
+    <xsl:param name="topicToCopyToMap" as="element()" tunnel="yes"/>
+
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] updateJobXml: property[@name= 'copytotarget2sourcemaplist']/map...</xsl:message>
+    </xsl:if>
+    <xsl:copy>
+      <xsl:apply-templates select="@*, node(), $topicToCopyToMap" mode="#current">
+        <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+      </xsl:apply-templates>
+    </xsl:copy>    
+  </xsl:template>
+  
+  <xsl:template mode="updateJobXml" match="topicToCopyToMap">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] updateJobXml: topicToCopyToMap</xsl:message>
+    </xsl:if>
+
+    <xsl:apply-templates mode="#current"/>
+  </xsl:template>
+
+  <xsl:template mode="updateJobXml" match="mapItem">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] updateJobXml: <xsl:sequence select="."/></xsl:message>
+    </xsl:if>
+     <!--
+       job.xml:
+       
+       <entry
+        key="epub-test/chapters/subtopic-02-2nd-ref.xml">
+        <string>chapters/subtopic-02.xml</string>
+      </entry>
+
+      Our copyTo map: 
+      
+        <mapItem>
+          <key><xsl:sequence select="current-grouping-key()"></xsl:sequence></key>
+          <value>
+            <copyTo 
+              topicrefId="{generate-id(.)}" 
+              copy-to="{normalize-space($copytoValue)}"
+              isNew="{not(@copy-to)}"        
+            />
+          </value>
+       </mapItem>
+
+     -->
+    
+    <xsl:for-each select="value/copyTo">
+      <entry key="{@copy-to}"><string><xsl:value-of select="key"/></string></entry>
+    </xsl:for-each>
+    
+  </xsl:template>
+  
 
   <!-- ==================================
        Default templates
@@ -277,13 +417,15 @@
     
   </xsl:template>
   
-  <xsl:template match="text() | processing-instruction() | comment() | @*">
+  <xsl:template mode="#default updateJobXml" 
+    match="text() | processing-instruction() | comment() | @*">
     <xsl:sequence select="."/>
   </xsl:template>
   
-  <xsl:template match="*">
+  <xsl:template mode="#default updateJobXml" 
+    match="*">
     <xsl:copy>
-      <xsl:apply-templates select="@*,node()"/>
+      <xsl:apply-templates select="@*,node()" mode="#current"/>
     </xsl:copy>
   </xsl:template>
   

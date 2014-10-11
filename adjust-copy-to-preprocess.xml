@@ -74,7 +74,6 @@
       <xmlcatalog refid="dita.catalog"></xmlcatalog>
     </xslt>
     
-    <echo> **** dc-adjust-copy-to: After XSLT</echo>
     
     <!-- Update the resolved map with the one reflecting the
          adjusted copy-tos.
@@ -86,11 +85,9 @@
     <!-- Do preprocessing for any new source-to-copy-to mappings:
       
       -->
-    <!--
-    <move overwrite="true" tofile="${job.xml.dir}/.job.xml"
+    <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${copyToChangesJob.xml}"
     />
-    -->    
     
     <!-- Now do the processing -->
     <!-- TBD -->
@@ -99,11 +96,13 @@
          mapping.
       
       -->
-    <!--
-    <move overwrite="true" tofile="${job.xml.dir}/.job.xml"
+    <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${updatedJob.xml}"
     />
-    -->
+    <!-- Update the copyto-related list files: -->
+    <job-helper file="copytosource.list" property="copytosourcelist"></job-helper>
+    <property name="copytosourcefile" value="copytosource.list"></property>
+    
   </target>
   
   <target name="dc-adjust-copy-to-check">
