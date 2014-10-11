@@ -31,7 +31,7 @@
       >
       <!-- This target replaces the base OT preprocess. 
       
-           Adds D4P adjust copy-to processing after mappull step.
+           Adds DITA Community adjust copy-to processing after mappull step.
       -->
     </target>
   
