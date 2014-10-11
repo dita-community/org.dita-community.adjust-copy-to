@@ -9,37 +9,12 @@
        values to ensure unique topics or control
        deliverable-specific anchor IDs (e.g., HTML filenames).
        ========================================== -->
-  
-    <target name="dc-preprocess" description="DITA Community preprocessing extensions"
-      depends="
-                gen-list,
-                debug-filter,
-                copy-files,
-                conrefpush,
-                conref,
-                move-meta-entries,
-                keyref,
-                coderef,
-                mapref,
-                mappull,
-                dc-adjust-copy-to,
-                chunk,
-                maplink,
-                move-links,
-                topicpull,
-                flag-module"
-      >
-      <!-- This target replaces the base OT preprocess. 
       
-           Adds DITA Community adjust copy-to processing after mappull step.
-      -->
-    </target>
-  
   <target name="dc-adjust-copy-to" 
     depends="dc-adjust-copy-to-check" 
     unless="preprocess.dc-adjust-copy-to.skip" 
     description="Adjust copy-to attributes in resolved map">
-
+    
     <dirname property="mappull.workdir" 
       file="${dita.temp.dir}/${user.input.file}"
     />
@@ -49,6 +24,23 @@
       value="${dita.preprocess.reloadstylesheet}">
       <not><isset property="dita.preprocess.reloadstylesheet.adjust-copy-to"></isset></not>
     </condition>
+    
+    <!-- NOTE: This process also generates two job XML files, one with just the new source-to-copy-to
+               mappings resulting from the adjustment and one that is the original job.xml updated
+               to reflect the adjusted source-to-copy-to mappings.
+               
+               The changes-only job.xml is copyToChangesJob.xml
+               
+               The updated job.xml is updatedJob.xml
+               
+      -->
+    <property name="job.xml.dir"  location="${dita.temp.dir}"/>
+    <makeurl  property="job.xml.dir.url" file="${job.xml.dir}"/>
+    
+    <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
+    <property name="updatedJob.xml" value="updatedJob.xml"/>
+    
+    <echo> **** dc-adjust-copy-to: before XSLT: ${dita.plugin.org.dita-community.adjust-copy-to.dir}/xsl/adjustCopyTo.xsl</echo>
     
     <xslt taskname="adjust-copy-to" 
       basedir="${dita.temp.dir}" 
@@ -60,6 +52,9 @@
       style="${dita.plugin.org.dita-community.adjust-copy-to.dir}/xsl/adjustCopyTo.xsl">
       <param name="DITAEXT" expression="${dita.ext}" if="dita.ext"></param>
       <param name="TRANSTYPE" expression="${transtype}"/>
+      <param name="job.xml.dir.url" expression="${job.xml.dir.url}"/><!-- URL of directory containing .job.xml file -->
+      <param name="copyToChangesJob.filename" expression="${copyToChangesJob.xml}"/>
+      <param name="updatedJob.filename" expression="${updatedJob.xml}"/>
       <param name="use-nav-keys" 
              expression="${dc.adjust-copy-to.use-nav-keys}"
              if="dc.adjust-copy-to.use-nav-keys"
@@ -78,10 +73,37 @@
       />
       <xmlcatalog refid="dita.catalog"></xmlcatalog>
     </xslt>
+    
+    <echo> **** dc-adjust-copy-to: After XSLT</echo>
+    
+    <!-- Update the resolved map with the one reflecting the
+         adjusted copy-tos.
+      -->
     <move overwrite="true" todir="${dita.temp.dir}">
       <fileset dir="${dita.temp.dir}" includes="**/*.ditamap.copy-to"/>
       <mapper type="glob" from="*.ditamap.copy-to" to="*.ditamap"/>
     </move>
+    <!-- Do preprocessing for any new source-to-copy-to mappings:
+      
+      -->
+    <!--
+    <move overwrite="true" tofile="${job.xml.dir}/.job.xml"
+      file="${job.xml.dir}/${copyToChangesJob.xml}"
+    />
+    -->    
+    
+    <!-- Now do the processing -->
+    <!-- TBD -->
+
+    <!-- Update the full .job.xml file to reflect the adjusted copy-to
+         mapping.
+      
+      -->
+    <!--
+    <move overwrite="true" tofile="${job.xml.dir}/.job.xml"
+      file="${job.xml.dir}/${updatedJob.xml}"
+    />
+    -->
   </target>
   
   <target name="dc-adjust-copy-to-check">
@@ -89,5 +111,6 @@
       <isset property="noMap"></isset>
     </condition>
   </target>
+
 
 </project>
