@@ -86,9 +86,52 @@
     <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${copyToChangesJob.xml}"
     />
-    
+    <!-- FIXME: I'm not sure which of these we actually need to update, so 
+                doing all of them.
+      -->
+    <job-helper file="outditafiles.list" property="outditafileslist"></job-helper>
+    <job-helper file="fullditamapandtopic.list" property="fullditamapandtopiclist"></job-helper>
+    <job-helper file="fullditatopic.list" property="fullditatopiclist"></job-helper>
+    <job-helper file="fullditamap.list" property="fullditamaplist"></job-helper>
+    <job-helper file="hrefditatopic.list" property="hrefditatopiclist"></job-helper>
+    <job-helper file="conref.list" property="conreflist"></job-helper>
+    <job-helper file="image.list" property="imagelist"></job-helper>
+    <job-helper file="flagimage.list" property="flagimagelist"></job-helper>
+    <job-helper file="html.list" property="htmllist"></job-helper>
+    <job-helper file="hreftargets.list" property="hreftargetslist"></job-helper>
+    <job-helper file="canditopics.list" property="canditopicslist"></job-helper>
+    <job-helper file="skipchunk.list" property="skipchunklist"></job-helper>
+    <job-helper file="subjectscheme.list" property="subjectschemelist"></job-helper>
+    <job-helper file="conreftargets.list" property="conreftargetslist"></job-helper>
+    <job-helper file="copytosource.list" property="copytosourcelist"></job-helper>
+    <job-helper file="subtargets.list" property="subtargetslist"></job-helper>
+    <job-helper file="conrefpush.list" property="conrefpushlist"></job-helper>
+    <job-helper file="keyref.list" property="keyreflist"></job-helper>
+    <job-helper file="coderef.list" property="codereflist"></job-helper>
+    <job-helper file="resourceonly.list" property="resourceonlylist"></job-helper>
+    <property name="outditafilesfile" value="outditafiles.list"></property>
+    <property name="fullditamapandtopicfile" value="fullditamapandtopic.list"></property>
+    <property name="fullditatopicfile" value="fullditatopic.list"></property>
+    <property name="fullditamapfile" value="fullditamap.list"></property>
+    <property name="hrefditatopicfile" value="hrefditatopic.list"></property>
+    <property name="conreffile" value="conref.list"></property>
+    <property name="imagefile" value="image.list"></property>
+    <property name="flagimagefile" value="flagimage.list"></property>
+    <property name="htmlfile" value="html.list"></property>
+    <property name="hreftargetsfile" value="hreftargets.list"></property>
+    <property name="canditopicsfile" value="canditopics.list"></property>
+    <property name="skipchunkfile" value="skipchunk.list"></property>
+    <property name="subjectschemefile" value="subjectscheme.list"></property>
+    <property name="conreftargetsfile" value="conreftargets.list"></property>
+    <property name="copytosourcefile" value="copytosource.list"></property>
+    <property name="subtargetsfile" value="subtargets.list"></property>
+    <property name="conrefpushfile" value="conrefpush.list"></property>
+    <property name="keyreffile" value="keyref.list"></property>
+    <property name="codereffile" value="coderef.list"></property>
+    <property name="resourceonlyfile" value="resourceonly.list"></property>
+
     <!-- Now do the processing -->
-    <!-- TBD -->
+    <antcall target="adjust-copy-to.preprocess-new-copy-tos"/>
 
     <!-- Update the full .job.xml file to reflect the adjusted copy-to
          mapping.
@@ -97,9 +140,47 @@
     <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${updatedJob.xml}"
     />
-    <!-- Update the copyto-related list files: -->
+    <!-- Regenerate all the lists. -->
+    <job-helper file="outditafiles.list" property="outditafileslist"></job-helper>
+    <job-helper file="fullditamapandtopic.list" property="fullditamapandtopiclist"></job-helper>
+    <job-helper file="fullditatopic.list" property="fullditatopiclist"></job-helper>
+    <job-helper file="fullditamap.list" property="fullditamaplist"></job-helper>
+    <job-helper file="hrefditatopic.list" property="hrefditatopiclist"></job-helper>
+    <job-helper file="conref.list" property="conreflist"></job-helper>
+    <job-helper file="image.list" property="imagelist"></job-helper>
+    <job-helper file="flagimage.list" property="flagimagelist"></job-helper>
+    <job-helper file="html.list" property="htmllist"></job-helper>
+    <job-helper file="hreftargets.list" property="hreftargetslist"></job-helper>
+    <job-helper file="canditopics.list" property="canditopicslist"></job-helper>
+    <job-helper file="skipchunk.list" property="skipchunklist"></job-helper>
+    <job-helper file="subjectscheme.list" property="subjectschemelist"></job-helper>
+    <job-helper file="conreftargets.list" property="conreftargetslist"></job-helper>
     <job-helper file="copytosource.list" property="copytosourcelist"></job-helper>
+    <job-helper file="subtargets.list" property="subtargetslist"></job-helper>
+    <job-helper file="conrefpush.list" property="conrefpushlist"></job-helper>
+    <job-helper file="keyref.list" property="keyreflist"></job-helper>
+    <job-helper file="coderef.list" property="codereflist"></job-helper>
+    <job-helper file="resourceonly.list" property="resourceonlylist"></job-helper>
+    <property name="outditafilesfile" value="outditafiles.list"></property>
+    <property name="fullditamapandtopicfile" value="fullditamapandtopic.list"></property>
+    <property name="fullditatopicfile" value="fullditatopic.list"></property>
+    <property name="fullditamapfile" value="fullditamap.list"></property>
+    <property name="hrefditatopicfile" value="hrefditatopic.list"></property>
+    <property name="conreffile" value="conref.list"></property>
+    <property name="imagefile" value="image.list"></property>
+    <property name="flagimagefile" value="flagimage.list"></property>
+    <property name="htmlfile" value="html.list"></property>
+    <property name="hreftargetsfile" value="hreftargets.list"></property>
+    <property name="canditopicsfile" value="canditopics.list"></property>
+    <property name="skipchunkfile" value="skipchunk.list"></property>
+    <property name="subjectschemefile" value="subjectscheme.list"></property>
+    <property name="conreftargetsfile" value="conreftargets.list"></property>
     <property name="copytosourcefile" value="copytosource.list"></property>
+    <property name="subtargetsfile" value="subtargets.list"></property>
+    <property name="conrefpushfile" value="conrefpush.list"></property>
+    <property name="keyreffile" value="keyref.list"></property>
+    <property name="codereffile" value="coderef.list"></property>
+    <property name="resourceonlyfile" value="resourceonly.list"></property>
     
   </target>
   
@@ -108,6 +189,15 @@
       <isset property="noMap"></isset>
     </condition>
   </target>
+  
+  <target name="adjust-copy-to.preprocess-new-copy-tos"
+    depends="debug-filter,
+             copy-files,
+             conrefpush,
+             conref,
+             move-meta-entries,
+             keyref,coderef"
+  />
 
 
 </project>
