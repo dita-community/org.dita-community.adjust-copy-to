@@ -312,7 +312,12 @@
       method="xml" indent="no"
       >
       <job>
-      <!-- Generate minimal job.xml file. -->
+        <property
+          name="copytotarget2sourcemaplist">
+          <map>
+            <xsl:apply-templates mode="updateJobXml" select=".//mapItem"/>
+          </map>
+        </property>
       </job>
     </xsl:result-document>
     

@@ -40,8 +40,6 @@
     <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
     <property name="updatedJob.xml" value="updatedJob.xml"/>
     
-    <echo> **** dc-adjust-copy-to: before XSLT: ${dita.plugin.org.dita-community.adjust-copy-to.dir}/xsl/adjustCopyTo.xsl</echo>
-    
     <xslt taskname="adjust-copy-to" 
       basedir="${dita.temp.dir}" 
       destdir="${dita.temp.dir}" 
