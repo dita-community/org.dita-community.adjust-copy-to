@@ -263,8 +263,8 @@
             <xsl:sequence select="''"/>
           </xsl:when>
           <xsl:otherwise>
-            <!-- Adjusting the copy-to value. -->
-            <xsl:variable name="ordinal" as="xs:integer" select="count($precedingTopicrefs) + 1"/>
+            <!-- Adjusting the copy-to value. We want generated numbers to start a 01. -->
+            <xsl:variable name="ordinal" as="xs:integer" select="count($precedingTopicrefs)"/>
             <xsl:variable name="countPicture" as="xs:string"
               select="if ($ordinal gt 999) then '0000'
                       else if ($ordinal gt 99) then '000'

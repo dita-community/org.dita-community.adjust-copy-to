@@ -15,6 +15,10 @@
     unless="preprocess.dc-adjust-copy-to.skip" 
     description="Adjust copy-to attributes in resolved map">
     
+    <echo>* </echo>
+    <echo>* Starting dc-adjust-copy-to...</echo>
+    <echo>* </echo>
+    
     <dirname property="mappull.workdir" 
       file="${dita.temp.dir}/${user.input.file}"
     />
@@ -130,9 +134,16 @@
     <property name="codereffile" value="coderef.list"></property>
     <property name="resourceonlyfile" value="resourceonly.list"></property>
 
+    <echo>* </echo>
+    <echo>* Applying preprocessing to adjusted copy-to files...</echo>
+    <echo>* </echo>
+
     <!-- Now do the processing -->
     <antcall target="adjust-copy-to.preprocess-new-copy-tos"/>
 
+    <echo>* </echo>
+    <echo>* Updating full .job.xml file...</echo>
+    <echo>* </echo>
     <!-- Update the full .job.xml file to reflect the adjusted copy-to
          mapping.
       
@@ -181,6 +192,10 @@
     <property name="keyreffile" value="keyref.list"></property>
     <property name="codereffile" value="coderef.list"></property>
     <property name="resourceonlyfile" value="resourceonly.list"></property>
+    
+    <echo>* </echo>
+    <echo>* Done with dc-adjust-copy-to.</echo>
+    <echo>* </echo>
     
   </target>
   
