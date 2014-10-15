@@ -93,6 +93,10 @@
     <!-- Do preprocessing for any new source-to-copy-to mappings:
       
       -->
+    <copy overwrite="true" tofile="${dita.temp.dir}/keydef-orig.xml"
+      file="${dita.temp.dir}/keydef.xml"
+    />
+
     <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${copyToChangesJob.xml}"
     />

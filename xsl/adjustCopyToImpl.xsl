@@ -91,8 +91,13 @@
   />
   
   <xsl:template match="/">
+    <!-- Context is resolved map -->
     
     <xsl:variable name="doDebug" as="xs:boolean" select="$doDebug"/>
+    
+    <xsl:variable name="mapFileName" as="xs:string"
+      select="relpath:getName(document-uri(.))"
+    />
     
     <!-- Map of topics to their copy-to values. Also 
          captures the set of navigation topicrefs that
@@ -141,6 +146,7 @@
     <xsl:call-template name="updateKeydefXml">
       <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
       <xsl:with-param name="updatedMap" as="node()*" select="$updatedMap"/>
+      <xsl:with-param name="mapFileName" as="xs:string" tunnel="yes" select="$mapFileName"/>
       <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes" select="$topicToCopyToMap"/>
     </xsl:call-template>
     
@@ -181,6 +187,7 @@
   <xsl:template mode="updateKeydefXml" 
     match="*[df:class(., 'map/topicref')]">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    <xsl:param name="mapFileName" as="xs:string" tunnel="yes"/>
     
     <xsl:variable name="thisTopicref" as="element()" select="."/>
     <xsl:variable name="keys" as="xs:string*"
@@ -204,9 +211,9 @@
           -->
         <keydef
           keys="{$key}"
-          source="???"          
+          source="{$mapFileName}"          
           >
-          <xsl:sequence 
+          <xsl:attribute name="href" 
             select="($thisTopicref/@copy-to, $thisTopicref/@href)[1]"
           />
           <xsl:choose>
@@ -460,8 +467,11 @@
           </map>
         </property>
         <files>
+          <!-- Files with keyrefs have to be reprocessed as the key binding may
+               have changed. (See https://github.com/dita-ot/dita-ot/issues/1760)
+            -->
           <xsl:apply-templates mode="makeJobFileEntries" 
-            select="$jobXmlDoc/*/files/file[string(@path) = $fileKeys]">
+            select="$jobXmlDoc/*/files/file[string(@path) = $fileKeys or @has-keyref = 'true']">
             <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
             <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
                         select="."
