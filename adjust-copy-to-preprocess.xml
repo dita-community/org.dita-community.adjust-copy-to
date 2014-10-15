@@ -44,10 +44,12 @@
     <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
     <property name="updatedJob.xml" value="updatedJob.xml"/>
     
+    <echo> [DEBUG] includesfile=${dita.temp.dir}/${user.input.file}</echo>
+    
     <xslt taskname="adjust-copy-to" 
       basedir="${dita.temp.dir}" 
       destdir="${dita.temp.dir}" 
-      includesfile="${dita.temp.dir}/${fullditamapfile}" 
+      includesfile="${dita.temp.dir}/${user.input.file.listfile}" 
       extension=".ditamap.copy-to" 
       classpathref="dost.class.path" 
       reloadstylesheet="${dita.preprocess.reloadstylesheet.adjust-copy-to}"

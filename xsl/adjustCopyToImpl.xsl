@@ -236,6 +236,9 @@
     <xsl:variable name="precedingTopicrefs" as="element()*"
       select="$topicrefsForTopic[. &lt;&lt; $thisTopicref]"
     />
+    <xsl:variable name="hrefValue" as="xs:string" 
+      select="relpath:getResourcePartOfUri(@href)"
+    />
     <xsl:if test="$doDebug">
       <!-- Put debug messages here -->
     </xsl:if>
@@ -263,7 +266,7 @@
             <xsl:sequence select="''"/>
           </xsl:when>
           <xsl:otherwise>
-            <!-- Adjusting the copy-to value. We want generated numbers to start a 01. -->
+            <!-- Adjusting the copy-to value. We want generated numbers to start at 01. -->
             <xsl:variable name="ordinal" as="xs:integer" select="count($precedingTopicrefs)"/>
             <xsl:variable name="countPicture" as="xs:string"
               select="if ($ordinal gt 999) then '0000'
@@ -279,14 +282,14 @@
             <xsl:variable name="namePart" as="xs:string" 
               select="if ($thisCopyTo != '') 
                          then relpath:getNamePart($thisCopyTo)
-                         else relpath:getNamePart(@href)" 
+                         else relpath:getNamePart($hrefValue)" 
               
             />
-            <xsl:variable name="ext" select="relpath:getExtension(@href)" as="xs:string"/>
+            <xsl:variable name="ext" select="relpath:getExtension($hrefValue)" as="xs:string"/>
             <xsl:variable name="dir" as="xs:string"
               select="if ($thisCopyTo != '') 
                          then relpath:getParent($thisCopyTo)
-                         else relpath:getParent(@href)"
+                         else relpath:getParent($hrefValue)"
             />
             <xsl:variable name="copytoValue" select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
             <xsl:if test="$doDebug">
@@ -465,10 +468,17 @@
   </xsl:template>
   
   <xsl:template mode="updateJobXml" match="file">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
     <xsl:param name="fileKeys" as="xs:string*" tunnel="yes"/>
     
+    <xsl:variable name="doDebug" as="xs:boolean" select="true()"/>
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] updateJobXml: file - fileKeys=<xsl:sequence select="$fileKeys"/></xsl:message>
+      <xsl:message> + [DEBUG] updateJobXml: file - @path="<xsl:value-of select="@file"/>"</xsl:message>
+    </xsl:if>
+
     <xsl:choose>
-      <xsl:when test="string(@file) = $fileKeys">
+      <xsl:when test="string(@path) = $fileKeys">
         <xsl:apply-templates mode="makeJobFileEntries" select="."/>
       </xsl:when>
       <xsl:otherwise>
@@ -521,7 +531,8 @@
          URL to a local-scope topic.
       -->
     <xsl:variable name="fullUrl" as="xs:string"
-      select="relpath:newFile(relpath:getParent(base-uri($topicref)), $topicref/@href)"
+      select="relpath:newFile(relpath:getParent(base-uri($topicref)), 
+                 relpath:getResourcePartOfUri(string($topicref/@href)))"
     />
     <xsl:variable name="result"
       select="relpath:getAbsolutePath($fullUrl)"
