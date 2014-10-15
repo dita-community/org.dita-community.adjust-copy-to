@@ -44,7 +44,9 @@
     <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
     <property name="updatedJob.xml" value="updatedJob.xml"/>
     
-    <echo> [DEBUG] includesfile=${dita.temp.dir}/${user.input.file}</echo>
+    <copy overwrite="true" tofile="${job.xml.dir}/job-original.xml"
+      file="${job.xml.dir}/.job.xml"
+    />
     
     <xslt taskname="adjust-copy-to" 
       basedir="${dita.temp.dir}" 

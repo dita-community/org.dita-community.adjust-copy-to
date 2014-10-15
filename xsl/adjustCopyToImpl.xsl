@@ -339,7 +339,7 @@
       return relpath:getRelativePath($job.xml.dir.url, string($key))"
     />
     
-    <!-- Now generated the copy-to changes version of the job XML file: -->
+    <!-- Now generate the copy-to changes version of the job XML file: -->
     <xsl:result-document href="{$changesUrl}"
       method="xml" indent="no"
       >      
@@ -358,7 +358,12 @@
         </property>
         <files>
           <xsl:apply-templates mode="makeJobFileEntries" 
-            select="$jobXmlDoc/*/files/file[string(@path) = $fileKeys]"/>
+            select="$jobXmlDoc/*/files/file[string(@path) = $fileKeys]">
+            <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+            <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
+                        select="."
+            />      
+          </xsl:apply-templates>
         </files>
       </job>
     </xsl:result-document>
@@ -385,12 +390,37 @@
   </xsl:template>
   
   <xsl:template mode="makeJobFileEntries" match="file">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
+    <xsl:param name="topicToCopyToMap" as="element()" tunnel="yes"/>
+    
+    <xsl:variable name="key" select="@path" as="xs:string"/>
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] makeJobFileEntries: file: $key="<xsl:value-of select="$key"/></xsl:message>
+    </xsl:if>
+      
+    <!-- Incoming <file> is for the copy-to source. Need to generate
+         <file> elements for each copy-to target as well.
+      -->
     <xsl:copy>
       <xsl:sequence select="@* except @copy-to-source"/>
       <xsl:attribute name="copy-to-source" 
         select="'true'"
       />
     </xsl:copy>
+    <xsl:variable name="origAtts" as="attribute()*"
+      select="@* except (@path)"
+    />
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] makeJobFileEntries:   mapItem=<xsl:sequence select="$topicToCopyToMap//mapItem[ends-with(normalize-space(key), $key)]"/></xsl:message>
+    </xsl:if>
+    
+    
+    <xsl:for-each select="$topicToCopyToMap//mapItem[ends-with(normalize-space(key), $key)]/value/copyTo">
+      <file>
+        <xsl:sequence select="$origAtts"/>
+        <xsl:attribute name="path" select="string(@copy-to)"/>
+      </file>
+    </xsl:for-each>
   </xsl:template>
   
   <!-- ==================================
@@ -471,7 +501,6 @@
     <xsl:param name="doDebug" as="xs:boolean" tunnel="yes" select="false()"/>
     <xsl:param name="fileKeys" as="xs:string*" tunnel="yes"/>
     
-    <xsl:variable name="doDebug" as="xs:boolean" select="true()"/>
     <xsl:if test="$doDebug">
       <xsl:message> + [DEBUG] updateJobXml: file - fileKeys=<xsl:sequence select="$fileKeys"/></xsl:message>
       <xsl:message> + [DEBUG] updateJobXml: file - @path="<xsl:value-of select="@file"/>"</xsl:message>
