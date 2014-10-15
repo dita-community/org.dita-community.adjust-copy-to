@@ -43,6 +43,7 @@
     
     <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
     <property name="updatedJob.xml" value="updatedJob.xml"/>
+    <property name="updatedKeydefs.xml" value="updatedKeydefs.xml"/>
     
     <copy overwrite="true" tofile="${job.xml.dir}/job-original.xml"
       file="${job.xml.dir}/.job.xml"
@@ -61,6 +62,7 @@
       <param name="job.xml.dir.url" expression="${job.xml.dir.url}"/><!-- URL of directory containing .job.xml file -->
       <param name="copyToChangesJob.filename" expression="${copyToChangesJob.xml}"/>
       <param name="updatedJob.filename" expression="${updatedJob.xml}"/>
+      <param name="updatedKeydefs.filename" expression="${updatedKeydefs.xml}"/>
       <param name="use-nav-keys" 
              expression="${dc.adjust-copy-to.use-nav-keys}"
              if="dc.adjust-copy-to.use-nav-keys"
@@ -197,6 +199,12 @@
     <property name="codereffile" value="coderef.list"></property>
     <property name="resourceonlyfile" value="resourceonly.list"></property>
     
+    <echo>* </echo>
+    <echo>* Updating keydef.xml file...</echo>
+    <echo>* </echo>
+    <copy overwrite="true" tofile="${dita.temp.dir}/keydef.xml"
+      file="${dita.temp.dir}/${updatedKeydefs.xml}"
+    />
     <echo>* </echo>
     <echo>* Done with dc-adjust-copy-to.</echo>
     <echo>* </echo>

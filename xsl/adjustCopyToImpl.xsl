@@ -23,6 +23,17 @@
      The output is a new single-document map with the @copy-to
      values adjusted as appropriate.
      
+     Also generates:
+     
+     * a job XML file that reflects only those
+       files whose copy-to value has changed
+       
+     * An updated full job XML file reflecting the 
+       adjusted copy-tos
+       
+     * An updated keydef.xml file with additional keydef
+       entries for updated copy-tos.
+     
      Default mode is a normal identity transform.
 
      =================================================== -->
@@ -63,11 +74,15 @@
   
   <!-- Absolute path to the directory containing the job.xml.dir (normally the dita temp dir) -->
   <xsl:param name="job.xml.dir.url" as="xs:string"/><!-- URL of directory containing .job.xml file -->
-  <xsl:param name="copyToChangesJob.filename" as="xs:string"/>
-  <xsl:param name="updatedJob.filename" as="xs:string"/>
+  <xsl:param name="copyToChangesJob.filename" as="xs:string" select="'copyToChangesJob.xml'"/>
+  <xsl:param name="updatedJob.filename" as="xs:string" select="'updatedJob.xml'"/>
+  <xsl:param name="updatedKeydefs.filename" as="xs:string" select="'updatedKeydefs.xml'"/>
   
   <xsl:variable name="jobXmlDoc" as="document-node()"
     select="document(relpath:newFile($job.xml.dir.url, '.job.xml'))"
+  />
+  <xsl:variable name="keydefXmlDoc" as="document-node()"
+    select="document(relpath:newFile($job.xml.dir.url, 'keydef.xml'))"
   />
   
   <xsl:param name="debug" as="xs:string" select="'false'"/>
@@ -112,12 +127,100 @@
     </xsl:apply-templates>
     
     <!-- Generate the updated DITA map: -->
-    <xsl:apply-templates select="node()">
-      <xsl:with-param name="doDebug" as="xs:boolean" select="$doDebug" tunnel="yes"/>
-      <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
-        select="$topicToCopyToMap"
-      />      
-    </xsl:apply-templates>
+    <xsl:variable name="updatedMap" as="node()*">
+      <xsl:apply-templates select="node()">
+        <xsl:with-param name="doDebug" as="xs:boolean" select="$doDebug" tunnel="yes"/>
+        <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes"
+          select="$topicToCopyToMap"
+        />      
+      </xsl:apply-templates>
+    </xsl:variable>
+    
+    <!-- Generate the updated keydef file, reflecting any changed copy-tos: -->
+    
+    <xsl:call-template name="updateKeydefXml">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+      <xsl:with-param name="updatedMap" as="node()*" select="$updatedMap"/>
+      <xsl:with-param name="topicToCopyToMap" as="element()" tunnel="yes" select="$topicToCopyToMap"/>
+    </xsl:call-template>
+    
+    <xsl:message> + [INFO] Writing updated map document...</xsl:message>
+    <!-- The updated map is the direct output of this transform. -->
+    
+    <xsl:sequence select="$updatedMap"/>
+    
+    <xsl:message> + [INFO] Done.</xsl:message>
+  </xsl:template>
+  
+  <!-- ==================================
+       Mode updateKeydefXml
+       ================================== -->
+  
+  <xsl:template name="updateKeydefXml">
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    <xsl:param name="updatedMap" as="node()*"/>
+    <xsl:param name="topicToCopyToMap" as="element()" tunnel="yes"/>
+
+    <xsl:variable name="updatedKeydefXmlUrl" as="xs:string"
+      select="relpath:newFile($job.xml.dir.url, $updatedKeydefs.filename)"
+    />
+    
+    <xsl:message> + [INFO] updateKeydefXml: Generating updatedKeydef.xml file: <xsl:value-of select="$updatedKeydefXmlUrl"/>... </xsl:message>
+    
+    <xsl:result-document href="{$updatedKeydefXmlUrl}" method="xml" indent="no">
+      <stub>
+        <xsl:apply-templates mode="updateKeydefXml"
+          select="$updatedMap//*[df:class(., 'map/topicref')]
+                                [@keys != '']">
+          <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+        </xsl:apply-templates>
+      </stub>
+    </xsl:result-document>    
+  </xsl:template>
+  
+  <xsl:template mode="updateKeydefXml" 
+    match="*[df:class(., 'map/topicref')]">
+    <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    
+    <xsl:variable name="thisTopicref" as="element()" select="."/>
+    <xsl:variable name="keys" as="xs:string*"
+      select="tokenize(normalize-space(@keys), ' ')"
+    />
+    
+    <xsl:for-each select="$keys">
+      <xsl:variable name="key" as="xs:string" select="."/>
+      <xsl:choose>
+        <xsl:when test="$thisTopicref/preceding::*[$key = tokenize(normalize-space(@keys), ' ')]">
+          <!-- Key is already defined in the map, skip this key -->
+          <xsl:if test="$doDebug">
+            <xsl:message> + [DEBUG] updateKeydefXml: key "<xsl:value-of select="."/>" already defined in map, skipping. </xsl:message>
+          </xsl:if>
+        </xsl:when>
+        <xsl:otherwise>
+          <!-- Generate a keydef entry for this key 
+          
+               Not sure how best to set the @source attribute. May
+               not be essential.
+          -->
+        <keydef
+          keys="{$key}"
+          source="???"          
+          >
+          <xsl:sequence 
+            select="($thisTopicref/@copy-to, $thisTopicref/@href)[1]"
+          />
+          <xsl:choose>
+            <xsl:when test="$thisTopicref/@scope">
+              <xsl:sequence select="$thisTopicref/@scope"/>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:attribute name="scope" select="'local'"/>
+            </xsl:otherwise>
+          </xsl:choose>          
+        </keydef>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:for-each>
   </xsl:template>
   
   <!-- ==================================
@@ -386,7 +489,7 @@
         <xsl:with-param name="fileKeys" as="xs:string*" tunnel="yes" select="$fileKeys"/>
       </xsl:apply-templates>
     </xsl:result-document>
-
+    
   </xsl:template>
   
   <xsl:template mode="makeJobFileEntries" match="file">
@@ -422,7 +525,17 @@
       </file>
     </xsl:for-each>
   </xsl:template>
+
+  <!-- ==================================
+       Mode updateKeydefXml
+       ================================== -->
   
+  <xsl:template mode="updateKeydefXml" match="*" priority="-1">
+    <xsl:copy>
+      <xsl:apply-templates mode="#current" select="@*, node()"/>
+    </xsl:copy>
+  </xsl:template>
+
   <!-- ==================================
        Mode updateJobXml
        ================================== -->
