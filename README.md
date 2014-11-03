@@ -1,7 +1,7 @@
 org.dita-community.adjust-copy-to
 =================================
 
-Post processes the resolve map (output of the mappull preprocess step)
+Post processes the resolved map (output of the mappull preprocess step)
 in order to add additional copy-to values in order to ensure unique
 result files for all references to a given topic or to impose additional
 output filenaming rules, such as using navigation keys for result filenames.
