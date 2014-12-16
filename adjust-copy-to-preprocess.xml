@@ -218,7 +218,7 @@
   <target name="dc-adjust-copy-to-check">
     <condition property="preprocess.dc-adjust-copy-to.skip">
       <not>
-        <isset property="preprocess.dc-adjust-copy-to.skip"></isset>
+        <isset property="preprocess.dc-adjust-copy-to.noskip"></isset>
       </not>
     </condition>
   </target>
