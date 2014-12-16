@@ -1,60 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir="." name="adjustCopyTo-preprocess">
-  
+
   <!-- ==========================================
        DITA Community Preprocessing Enhancements
-       
+
        Extends the base DITA OT preprocessing pipeline
-       by adding a process to adjust the @copy-to 
+       by adding a process to adjust the @copy-to
        values to ensure unique topics or control
        deliverable-specific anchor IDs (e.g., HTML filenames).
        ========================================== -->
-      
-  <target name="dc-adjust-copy-to" 
-    depends="dc-adjust-copy-to-check" 
-    unless="preprocess.dc-adjust-copy-to.skip" 
+
+  <target name="dc-adjust-copy-to"
+    depends="dc-adjust-copy-to-check"
+    unless="preprocess.dc-adjust-copy-to.skip"
     description="Adjust copy-to attributes in resolved map">
-    
+
     <echo>* </echo>
     <echo>* Starting dc-adjust-copy-to...</echo>
     <echo>* </echo>
-    
-    <dirname property="mappull.workdir" 
+
+    <dirname property="mappull.workdir"
       file="${dita.temp.dir}/${user.input.file}"
     />
-    
-    <condition 
-      property="dita.preprocess.reloadstylesheet.adjust-copy-to" 
+
+    <condition
+      property="dita.preprocess.reloadstylesheet.adjust-copy-to"
       value="${dita.preprocess.reloadstylesheet}">
       <not><isset property="dita.preprocess.reloadstylesheet.adjust-copy-to"></isset></not>
     </condition>
-    
+
     <!-- NOTE: This process also generates two job XML files, one with just the new source-to-copy-to
                mappings resulting from the adjustment and one that is the original job.xml updated
                to reflect the adjusted source-to-copy-to mappings.
-               
+
                The changes-only job.xml is copyToChangesJob.xml
-               
+
                The updated job.xml is updatedJob.xml
-               
+
       -->
     <property name="job.xml.dir"  location="${dita.temp.dir}"/>
     <makeurl  property="job.xml.dir.url" file="${job.xml.dir}"/>
-    
+
     <property name="copyToChangesJob.xml" value="copyToChangesJob.xml"/>
     <property name="updatedJob.xml" value="updatedJob.xml"/>
     <property name="updatedKeydefs.xml" value="updatedKeydefs.xml"/>
-    
+
     <copy overwrite="true" tofile="${job.xml.dir}/job-original.xml"
       file="${job.xml.dir}/.job.xml"
     />
-    
-    <xslt taskname="adjust-copy-to" 
-      basedir="${dita.temp.dir}" 
-      destdir="${dita.temp.dir}" 
-      includesfile="${dita.temp.dir}/${user.input.file.listfile}" 
-      extension=".ditamap.copy-to" 
-      classpathref="dost.class.path" 
+
+    <xslt taskname="adjust-copy-to"
+      basedir="${dita.temp.dir}"
+      destdir="${dita.temp.dir}"
+      includesfile="${dita.temp.dir}/${user.input.file.listfile}"
+      extension=".ditamap.copy-to"
+      classpathref="dost.class.path"
       reloadstylesheet="${dita.preprocess.reloadstylesheet.adjust-copy-to}"
       style="${dita.plugin.org.dita-community.adjust-copy-to.dir}/xsl/adjustCopyTo.xsl">
       <param name="DITAEXT" expression="${dita.ext}" if="dita.ext"></param>
@@ -63,26 +63,26 @@
       <param name="copyToChangesJob.filename" expression="${copyToChangesJob.xml}"/>
       <param name="updatedJob.filename" expression="${updatedJob.xml}"/>
       <param name="updatedKeydefs.filename" expression="${updatedKeydefs.xml}"/>
-      <param name="use-nav-keys" 
+      <param name="use-nav-keys"
              expression="${dc.adjust-copy-to.use-nav-keys}"
              if="dc.adjust-copy-to.use-nav-keys"
       />
-      <param name="override-existing-copy-to" 
+      <param name="override-existing-copy-to"
              expression="${dc.adjust-copy-to.override-existing-copy-to}"
              if="dc.adjust-copy-to.override-existing-copy-to"
       />
       <param name="expand-reltable-refs"
              expression="${dc.adjust-copy-to.expand-reltable-refs}"
              if="dc.adjust-copy-to.expand-reltable-refs"
-      />      
+      />
       <param name="debug"
              expression="${dc.adjust-copy-to.debug}"
              if="dc.adjust-copy-to.debug"
       />
       <xmlcatalog refid="dita.catalog"></xmlcatalog>
     </xslt>
-    
-    
+
+
     <!-- Update the resolved map with the one reflecting the
          adjusted copy-tos.
       -->
@@ -91,7 +91,7 @@
       <mapper type="glob" from="*.ditamap.copy-to" to="*.ditamap"/>
     </move>
     <!-- Do preprocessing for any new source-to-copy-to mappings:
-      
+
       -->
     <copy overwrite="true" tofile="${dita.temp.dir}/keydef-orig.xml"
       file="${dita.temp.dir}/keydef.xml"
@@ -100,7 +100,7 @@
     <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${copyToChangesJob.xml}"
     />
-    <!-- FIXME: I'm not sure which of these we actually need to update, so 
+    <!-- FIXME: I'm not sure which of these we actually need to update, so
                 doing all of them.
       -->
     <job-helper file="outditafiles.list" property="outditafileslist"></job-helper>
@@ -156,7 +156,7 @@
     <echo>* </echo>
     <!-- Update the full .job.xml file to reflect the adjusted copy-to
          mapping.
-      
+
       -->
     <copy overwrite="true" tofile="${job.xml.dir}/.job.xml"
       file="${job.xml.dir}/${updatedJob.xml}"
@@ -202,7 +202,7 @@
     <property name="keyreffile" value="keyref.list"></property>
     <property name="codereffile" value="coderef.list"></property>
     <property name="resourceonlyfile" value="resourceonly.list"></property>
-    
+
     <echo>* </echo>
     <echo>* Updating keydef.xml file...</echo>
     <echo>* </echo>
@@ -212,15 +212,17 @@
     <echo>* </echo>
     <echo>* Done with dc-adjust-copy-to.</echo>
     <echo>* </echo>
-    
+
   </target>
-  
+
   <target name="dc-adjust-copy-to-check">
     <condition property="preprocess.dc-adjust-copy-to.skip">
-      <isset property="noMap"></isset>
+      <not>
+        <isset property="preprocess.dc-adjust-copy-to.skip"></isset>
+      </not>
     </condition>
   </target>
-  
+
   <target name="adjust-copy-to.preprocess-new-copy-tos"
     depends="debug-filter,
              copy-files,
