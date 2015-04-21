@@ -352,7 +352,30 @@
     <xsl:if test="$doDebug">
       <!-- Put debug messages here -->
     </xsl:if>
+    <xsl:message> + [DEBUG] isUseNavKeys="<xsl:value-of select="$isUseNavKeys"/>"</xsl:message>
     <xsl:choose>
+      <xsl:when test="$isUseNavKeys and (@keys != '')">
+        <!-- Use the @keys value as the copy-to value.
+          
+             There are some complexities here:
+             - While a key will be unique within its scope,
+               it may not be unique with respect to topic
+               source filenames. Will need some way to 
+               make the key-defined copy-to values reliably unique.
+               Options include:
+               - Separate directory for all key-defined copy-tos
+               - A distinguishing prefix or suffix.
+               - Don't worry about it.
+               - Make copy-to values unique by adding numbers, etc.
+               - Leave it up to authors.
+               
+             - If there are multiple @keys values, we have to choose
+               one. Ideal solution would provide a way to choose among
+               alternatives using some pattern match. For now, just
+               choosing the first one.
+           -->
+        <xsl:value-of select="concat(tokenize(@keys, ' ')[1], '.dita')"/>
+      </xsl:when>
       <xsl:when test="count($precedingTopicrefs) = 0">
         <xsl:if test="$doDebug">
           <xsl:message> + [DEBUG]     First reference. Not adjusting @copy-to.</xsl:message>
