@@ -262,7 +262,7 @@
         group-by="local:makeHrefAbsolute(.)"
         >     
         
-        <xsl:if test="false()">
+        <xsl:if test="$doDebug">
           <xsl:message> + [DEBUG] topicref: grouping-key="<xsl:sequence select="current-grouping-key()"/>", href="<xsl:sequence select="string(current-group()[1]/@href)"/>"
           <xsl:message> + [DEBUG] makeCopyToMap: Handling <xsl:value-of select="count(current-group())"/> topicrefs to topic <xsl:value-of
                                select="@href"/></xsl:message>
@@ -350,9 +350,8 @@
       select="relpath:getResourcePartOfUri(@href)"
     />
     <xsl:if test="$doDebug">
-      <!-- Put debug messages here -->
+      <xsl:message> + [DEBUG] isUseNavKeys="<xsl:value-of select="$isUseNavKeys"/>"</xsl:message>
     </xsl:if>
-    <xsl:message> + [DEBUG] isUseNavKeys="<xsl:value-of select="$isUseNavKeys"/>"</xsl:message>
     <xsl:choose>
       <xsl:when test="$isUseNavKeys and (@keys != '')">
         <!-- Use the @keys value as the copy-to value.
