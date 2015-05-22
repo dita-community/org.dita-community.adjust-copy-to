@@ -216,10 +216,9 @@
   </target>
 
   <target name="dc-adjust-copy-to-check">
+    <!-- copy-to adjustment is on by default. -->
     <condition property="preprocess.dc-adjust-copy-to.skip">
-      <not>
-        <isset property="preprocess.dc-adjust-copy-to.noskip"></isset>
-      </not>
+      <isset property="args.dc-adjust-copy-to.skip"></isset>
     </condition>
   </target>
 
