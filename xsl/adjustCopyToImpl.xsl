@@ -13,12 +13,12 @@
      
      See d4pAdjustCopyTo.xsl for details.
      
-     Copyright (c) 2014 DITA for Publishers
+     Copyright (c) 2014, 2015 DITA Community
 
      The input to this transform is a fully-resolved map, e.g.,
      the output of the Open Toolkit mappull process (that is, 
      the copy of the original input map that is in the OT's
-     temp directory.
+     temp directory).
      
      The output is a new single-document map with the @copy-to
      values adjusted as appropriate.
@@ -189,6 +189,10 @@
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
     <xsl:param name="mapFileName" as="xs:string" tunnel="yes"/>
     
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] updateKeydefXml: Handling topicref <xsl:sequence select="df:reportTopicref(.)"/></xsl:message>
+    </xsl:if>
+    
     <xsl:variable name="thisTopicref" as="element()" select="."/>
     <xsl:variable name="keys" as="xs:string*"
       select="tokenize(normalize-space(@keys), ' ')"
@@ -204,6 +208,9 @@
           </xsl:if>
         </xsl:when>
         <xsl:otherwise>
+          <xsl:if test="$doDebug">
+            <xsl:message> + [DEBUG] updateKeydefXml: key "<xsl:value-of select="."/>" is first definition, capturing the keydef. </xsl:message>
+          </xsl:if>
           <!-- Generate a keydef entry for this key 
           
                Not sure how best to set the @source attribute. May
@@ -250,14 +257,33 @@
            reliably include all topicrefs.
       
       -->
+      <xsl:if test="$doDebug">
+          <xsl:message> + [DEBUG] Topicrefs selected for analysis:</xsl:message>
+        <xsl:for-each-group 
+          select=".//*[df:isTopicRef(.) and 
+                          not(@processing-role = 'resource-only') and
+                          not(ancestor::*[contains(@chunk, 'to-content')])
+                          and @scope = 'local' and
+                          (@format = 'dita' or @format = '') and
+                          (@href != '' or @keyref != '')                          
+                          ]"
+          group-by="local:makeHrefAbsolute(.)"
+          >
+          <xsl:message> + [DEBUG] Group "<xsl:value-of select="current-grouping-key()"/>"</xsl:message>
+          <xsl:for-each select="current-group()">
+            <xsl:message> + [DEBUG] ++++</xsl:message>
+            <xsl:message> + [DEBUG] <xsl:sequence select="df:reportTopicref(.)"/></xsl:message>
+            <xsl:message> + [DEBUG] not(ancestor::*[contains(@chunk, 'to-content')]=<xsl:value-of select="not(./ancestor::*[contains(@chunk, 'to-content')])"/></xsl:message>
+          </xsl:for-each>
+        </xsl:for-each-group>
+      </xsl:if>
       <xsl:for-each-group 
         select=".//*[df:isTopicRef(.) and 
                         not(@processing-role = 'resource-only') and
-                        not(ancestor::*[contains(@chunk, 'to-content')] and
+                        not(ancestor::*[contains(@chunk, 'to-content')]) and
                         @scope = 'local' and
                         (@format = 'dita' or @format = '') and
                         (@href != '' or @keyref != '')
-                        )
                         ]"
         group-by="local:makeHrefAbsolute(.)"
         >     
@@ -288,7 +314,11 @@
   <xsl:template mode="makeCopyToMap" match="*[df:class(., 'map/topicref')]">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
-    
+ 
+    <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] makeCopyToMap: Handling topicref <xsl:sequence select="df:reportTopicref(.)"/></xsl:message>
+    </xsl:if>
+ 
     <xsl:variable name="copytoValue">
       <!-- Must be '' for unchanged or unset copy-to. Must have a value
            for new or modified copy-to values.
@@ -299,6 +329,9 @@
          topicref.
       -->
     <xsl:if test="$copytoValue != ''">
+      <xsl:if test="$doDebug">
+        <xsl:message> + [DEBUG] makeCopyToMap:   $copytoValue="<xsl:sequence select="$copytoValue"/>, adding copyTo entry to copy-to map.</xsl:message>
+      </xsl:if>
       <!-- If a topicref did not have a @copy-to value, then this must
            be a new copy-to otherwise it must be an updated. Unchanged
            copy-to values should not get here.
@@ -328,6 +361,10 @@
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
     
+     <xsl:if test="$doDebug">
+      <xsl:message> + [DEBUG] determineCopytoValue: Handling topicref <xsl:sequence select="df:reportTopicref(.)"/></xsl:message>
+    </xsl:if>
+
     <!-- Needs to return a non-empty string if the copy-to value is being set
          or modified.
          
