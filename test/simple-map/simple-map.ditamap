@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Simple Test Map for Adjust Copy To</title>
+  <topicref
+    href="simple-map.dita">
+    <topicref
+      href="topic-01.dita"
+      keys="chapter-01">
+      <topicref
+        href="topic-03.dita"
+        keys="ch01-ss01"/>
+    </topicref>
+    <topicref
+      href="topic-02.dita"
+      keys="chapter-02">
+      <topicref
+        href="topic-04.dita"
+        keys="ch02-ss01"/>
+      <topicref
+        href="topic-03.dita"
+        keys="ch02-ss02"/>
+    </topicref>
+  </topicref>
+</map>

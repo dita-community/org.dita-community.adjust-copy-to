@@ -52,7 +52,7 @@
     <xslt taskname="adjust-copy-to"
       basedir="${dita.temp.dir}"
       destdir="${dita.temp.dir}"
-      includesfile="${dita.temp.dir}/${user.input.file.listfile}"
+      includesfile="${dita.temp.dir}/${fullditamapfile}"
       extension=".ditamap.copy-to"
       classpathref="dost.class.path"
       reloadstylesheet="${dita.preprocess.reloadstylesheet.adjust-copy-to}"
@@ -223,8 +223,7 @@
   </target>
 
   <target name="adjust-copy-to.preprocess-new-copy-tos"
-    depends="debug-filter,
-             copy-files,
+    depends="copy-files,
              conrefpush,
              conref,
              move-meta-entries,
