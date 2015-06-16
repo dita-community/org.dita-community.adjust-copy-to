@@ -86,10 +86,10 @@
     <!-- Update the resolved map with the one reflecting the
          adjusted copy-tos.
       -->
-    <move overwrite="true" todir="${dita.temp.dir}">
+    <copy overwrite="true" todir="${dita.temp.dir}">
       <fileset dir="${dita.temp.dir}" includes="**/*.ditamap.copy-to"/>
       <mapper type="glob" from="*.ditamap.copy-to" to="*.ditamap"/>
-    </move>
+    </copy>
     <!-- Do preprocessing for any new source-to-copy-to mappings:
 
       -->
@@ -103,6 +103,10 @@
     <!-- FIXME: I'm not sure which of these we actually need to update, so
                 doing all of them.
       -->
+    <echo>* </echo>
+    <echo>* Regenerating job-helper lists...</echo>
+    <echo>* </echo>
+
     <job-helper file="outditafiles.list" property="outditafileslist"></job-helper>
     <job-helper file="fullditamapandtopic.list" property="fullditamapandtopiclist"></job-helper>
     <job-helper file="fullditatopic.list" property="fullditatopiclist"></job-helper>
