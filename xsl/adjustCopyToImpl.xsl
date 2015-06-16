@@ -357,7 +357,7 @@
        the copy-to values.
        ================================== -->
   
-  <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')]">
+  <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')][@href]">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
     
