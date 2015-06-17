@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_tmk_sfc_ks">
+  <title>Map With Pre-Specified @copy-to</title>
+  <body>
+    <p>This map already has @copy-to attributes specified. What happens depends on the run-time arguments supplied. The @keys values differ from the @copy-to values. </p>
+    <p>Result possibilities are:<ul
+      id="ul_qcr_dgc_ks">
+      <li>The existing @copy-to values are used</li>
+      <li>The @keys values are used in place of the existing @copy-to values</li>
+      </ul></p>
+  </body>
+</topic>
