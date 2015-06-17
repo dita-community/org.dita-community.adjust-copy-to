@@ -8,20 +8,23 @@
   <mapref
     href="topics/topic-keydefs.ditamap"/>
   <topicref
-    keys="chapter-01"
-    keyref="topic-01">
+    href="topics/root-topic.dita">
     <topicref
-      keys="ch01-ss01"
-      keyref="topic-03"/>
-  </topicref>
-  <topicref
-    keys="chapter-02"
-    keyref="topic-02">
+      keys="chapter-01"
+      keyref="topic-01">
+      <topicref
+        keys="ch01-ss01"
+        keyref="topic-03"/>
+    </topicref>
     <topicref
-      keys="ch02-ss01"
-      keyref="topic-04"/>
-    <topicref
-      keys="ch02-ss02"
-      keyref="topic-03"/>
+      keys="chapter-02"
+      keyref="topic-02">
+      <topicref
+        keys="ch02-ss01"
+        keyref="topic-04"/>
+      <topicref
+        keys="ch02-ss02"
+        keyref="topic-03"/>
+    </topicref>
   </topicref>
 </map>

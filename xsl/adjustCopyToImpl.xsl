@@ -11,7 +11,7 @@
 <!-- ===================================================
      Implementation of custom @copy-to adjustment.
      
-     See d4pAdjustCopyTo.xsl for details.
+     See adjustCopyTo.xsl for details.
      
      Copyright (c) 2014, 2015 DITA Community
 
@@ -95,6 +95,8 @@
     
     <xsl:variable name="doDebug" as="xs:boolean" select="$doDebug"/>
     
+    <xsl:call-template name="report-parameters"/>
+    
     <xsl:variable name="mapFileName" as="xs:string"
       select="relpath:getName(document-uri(.))"
     />
@@ -160,6 +162,16 @@
     <xsl:sequence select="$updatedMap"/>
     
     <xsl:message> + [INFO] Done.</xsl:message>
+  </xsl:template>
+  
+  <xsl:template name="report-parameters">
+    <xsl:message> + [INFO] ========================================</xsl:message>
+    <xsl:message> + [INFO] Adjust copy-to parameters:</xsl:message>
+    <xsl:message> + [INFO] </xsl:message>
+    <xsl:message> + [INFO] use-nav-keys: "<xsl:value-of select="$use-nav-keys"/>" (<xsl:value-of select="$isUseNavKeys"/>)</xsl:message>
+    <xsl:message> + [INFO] override-existing-copy-to: "<xsl:value-of select="$override-existing-copy-to"/>" (<xsl:value-of select="$isOverrideExistingCopyTo"/>)</xsl:message>
+    <xsl:message> + [INFO] expand-reltable-refs: "<xsl:value-of select="$expand-reltable-refs"/>" (<xsl:value-of select="$isExpandReltableRefs"/>)</xsl:message>
+    <xsl:message> + [INFO] ========================================</xsl:message>
   </xsl:template>
   
   <!-- ==================================
@@ -441,11 +453,18 @@
     <xsl:variable name="hrefValue" as="xs:string" 
       select="relpath:getResourcePartOfUri(@href)"
     />
+    <xsl:variable name="existingCopyToValue" as="xs:string" 
+      select="if (@copy-to) then string(@copy-to) else ''"
+    />
     <xsl:if test="$doDebug">
       <xsl:message> + [DEBUG] isUseNavKeys="<xsl:value-of select="$isUseNavKeys"/>"</xsl:message>
     </xsl:if>
     <xsl:choose>
-      <xsl:when test="$isUseNavKeys and (@keys != '')">
+      <!-- If there is an existing copy-to value, only replace
+           it with a key if override existing copy-to is on.
+        -->
+      <xsl:when test="$isUseNavKeys and (@keys != '') and
+                      ($isOverrideExistingCopyTo or $existingCopyToValue = '')">
         <!-- Use the @keys value as the copy-to value.
           
              There are some complexities here:
@@ -467,7 +486,7 @@
            -->
         <xsl:value-of select="concat(tokenize(@keys, ' ')[1], '.dita')"/>
       </xsl:when>
-      <xsl:when test="count($precedingTopicrefs) = 0">
+      <xsl:when test="$existingCopyToValue = '' and count($precedingTopicrefs) = 0">
         <xsl:if test="$doDebug">
           <xsl:message> + [DEBUG]     First reference. Not adjusting @copy-to.</xsl:message>
         </xsl:if>
@@ -477,12 +496,9 @@
         <!-- If there's already a copy-to on the topicref and it hasn't already been used, 
              use it, otherwise, construct a new value.
         -->
-        <xsl:variable name="thisCopyTo" as="xs:string"
-          select="if (@copy-to) then @copy-to else ''"
-        />
         <xsl:choose>
-          <xsl:when test="@copy-to != '' and 
-                          (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
+          <xsl:when test="$existingCopyToValue != '' and 
+                          (not($precedingTopicrefs[@copy-to = $existingCopyToValue][. &lt;&lt; $thisTopicref]))">
             <xsl:if test="$doDebug">
               <xsl:message> + [DEBUG]     Existing topicref value "<xsl:value-of select="@copy-to"/>" is fine. Not adjusting.</xsl:message>
             </xsl:if>
@@ -504,15 +520,15 @@
               select="format-number($ordinal, $countPicture)"
             />
             <xsl:variable name="namePart" as="xs:string" 
-              select="if ($thisCopyTo != '') 
-                         then relpath:getNamePart($thisCopyTo)
+              select="if ($existingCopyToValue != '') 
+                         then relpath:getNamePart($existingCopyToValue)
                          else relpath:getNamePart($hrefValue)" 
               
             />
             <xsl:variable name="ext" select="relpath:getExtension($hrefValue)" as="xs:string"/>
             <xsl:variable name="dir" as="xs:string"
-              select="if ($thisCopyTo != '') 
-                         then relpath:getParent($thisCopyTo)
+              select="if ($existingCopyToValue != '') 
+                         then relpath:getParent($existingCopyToValue)
                          else relpath:getParent($hrefValue)"
             />
             <xsl:variable name="copytoValue" select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
