@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_wdd_yjq_ks">
+  <title>Publication 01</title>
+  <body>
+    <p>This is publication 01. It's map is organized into submaps, one per chapter. It does not have any "go ups", that is, references to resources that are not stored directly below the publication root map.</p>
+  </body>
+</topic>

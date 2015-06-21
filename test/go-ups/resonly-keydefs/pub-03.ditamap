@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Publication 03 (Go Ups, Map Above All)</title>
+  <topicref
+    href="pub-03/root-topic.dita">
+    <mapref href="common/topics/common-topics-keydefs.ditamap"></mapref>
+    <mapref
+      href="pub-03/chapter-01/chapter-01.ditamap"/>
+    <mapref
+      href="pub-03/chapter-02/chapter-02.ditamap"/>
+  </topicref>
+</map>

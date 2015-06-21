@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Chapter 2 Chapter-Level Map</title>
+  <mapref
+    href="topics/chapter-02-keydefs.ditamap"/>
+  <topicref keys="chapter-02"
+    keyref="ch02-topic-01"/>
+</map>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Chapter 2 Keydefs</title>
+  <topicgroup>
+    <keydef keys="ch02-topic-01" href="topic-02.dita"/>
+  </topicgroup>
+</map>

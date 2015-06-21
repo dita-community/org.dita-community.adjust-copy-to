@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Placeholder keydefs for Chapters</title>
+  <topicgroup>
+    <keydef keys="chapter-01">
+      <topicmeta>
+        <navtitle>Chapter 01 Placeholder</navtitle>
+      </topicmeta>
+    </keydef>
+    <keydef keys="chapter-02">
+      <topicmeta>
+        <navtitle>Chapter 02 Placeholder</navtitle>
+      </topicmeta>
+    </keydef>
+  </topicgroup>
+</map>

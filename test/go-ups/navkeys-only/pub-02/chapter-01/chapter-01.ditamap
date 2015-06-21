@@ -6,6 +6,6 @@
     keys="chapter-01"
     href="topics/topic-01.dita">
     <topicref keys="ch-01-ss-01"
-      href="topics/topic-sub-01.dita"/>
+      href="../../common/topics/common-topic-01.dita"/>
   </topicref>
 </map>

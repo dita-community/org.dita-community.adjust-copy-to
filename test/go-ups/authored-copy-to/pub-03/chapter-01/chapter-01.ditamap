@@ -3,9 +3,9 @@
 <map>
  <title>Chapter 1 Chapter-level Map</title>
   <topicref
-    keys="chapter-01"
+    keys="chapter-01" copy-to="chapter-01.dita"
     href="topics/topic-01.dita">
-    <topicref keys="ch-01-ss-01"
-      href="topics/topic-sub-01.dita"/>
+    <topicref keys="ch-01-ss-01" copy-to="ch-01-ss-01.dita"
+      href="../../common/topics/common-topic-01.dita"/>
   </topicref>
 </map>

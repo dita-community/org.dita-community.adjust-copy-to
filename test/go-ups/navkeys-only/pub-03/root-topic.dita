@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_wdd_yjq_ks">
+  <title>Publication 03</title>
+  <body>
+    <p>This is publication 03. It's map is organized into submaps, one per chapter. It has a "go up": The chapter-01 map uses a topic from the common/ directory that is a sibling to the publication's directory, rather than being beneath it.</p>
+    <p>The difference between publication 03 and publication 02 is that the publication 03 root map is above all the publication-specific and common directories.</p>
+  </body>
+</topic>
