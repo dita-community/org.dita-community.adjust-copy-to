@@ -27,4 +27,22 @@
         keyref="topic-03"/>
     </topicref>
   </topicref>
+  <reltable>
+    <relrow>
+      <relcell>
+        <topicref href="topics/topic-01.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="topics/topic-02.dita"/>
+      </relcell>
+    </relrow>
+    <relrow>
+      <relcell>
+        <topicref href="topics/topic-01.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="topics/topic-03.dita"/>
+      </relcell>
+    </relrow>
+  </reltable>
 </map>
