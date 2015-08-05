@@ -66,6 +66,8 @@
        the topic (i.e., not to a navigation topicref by key)
        are duplicated, once for each unique copy-to value 
        produced for that topic.
+       
+       Implementation TBD
     -->
   <xsl:param name="expand-reltable-refs" as="xs:string" select="'no'"/>
   <xsl:param name="isExpandReltableRefs" as="xs:boolean" 
@@ -847,6 +849,7 @@
     <xsl:param name="context" as="element()"/>
     <xsl:variable name="result" as="xs:boolean"
       select="df:isTopicRef($context) and 
+              not($context/ancestor::*[df:class(., 'map/reltable')]) and
               not($context/@processing-role = 'resource-only') and
               not($context/ancestor::*[contains(@chunk, 'to-content')]) and
               local:isLocalScope($context) and
