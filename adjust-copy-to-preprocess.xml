@@ -19,6 +19,13 @@
     <echo>* Starting dc-adjust-copy-to...</echo>
     <echo>* </echo>
 
+    <!-- Get the OT configuration properties so we can then
+         pass them as parameters or system properties to
+         operations.
+      -->
+    <loadproperties srcfile="${dita.dir}/lib/configuration.properties"/>
+  
+
     <dirname property="mappull.workdir"
       file="${dita.temp.dir}/${user.input.file}"
     />
@@ -57,6 +64,7 @@
       classpathref="dost.class.path"
       reloadstylesheet="${dita.preprocess.reloadstylesheet.adjust-copy-to}"
       style="${dita.plugin.org.dita-community.adjust-copy-to.dir}/xsl/adjustCopyTo.xsl">
+      <sysproperty key="DOT_VERSION" value="${otversion}"/>
       <param name="DITAEXT" expression="${dita.ext}" if="dita.ext"></param>
       <param name="TRANSTYPE" expression="${transtype}"/>
       <param name="job.xml.dir.url" expression="${job.xml.dir.url}"/><!-- URL of directory containing .job.xml file -->
