@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Complex Map</title>
+  <topicmeta>
+    <shortdesc>Map that has map references to maps with key definitions.</shortdesc>
+  </topicmeta>
+  <mapref
+    href="topics/topic-keydefs.ditamap"/>
+  <topicref
+    href="topics/root-topic.dita">
+    <topicref
+      keys="chapter-01"
+      keyref="topic-01">
+      <topicref
+        keys="ch01-ss01"
+        keyref="topic-03"/>
+    </topicref>
+    <topicref
+      keys="chapter-02"
+      keyref="topic-02">
+      <topicref
+        keys="ch02-ss01"
+        keyref="topic-04"/>
+      <topicref
+        keys="ch02-ss02"
+        keyref="topic-03"/>
+    </topicref>
+  </topicref>
+  <reltable>
+    <relrow>
+      <relcell>
+        <topicref href="topics/topic-01.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="topics/topic-02.dita"/>
+      </relcell>
+    </relrow>
+    <relrow>
+      <relcell>
+        <topicref href="topics/topic-01.dita"/>
+      </relcell>
+      <relcell>
+        <topicref href="topics/topic-03.dita"/>
+      </relcell>
+    </relrow>
+  </reltable>
+</map>

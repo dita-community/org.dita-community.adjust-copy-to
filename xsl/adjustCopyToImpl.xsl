@@ -11,7 +11,7 @@
 <!-- ===================================================
      Implementation of custom @copy-to adjustment.
      
-     See d4pAdjustCopyTo.xsl for details.
+     See adjustCopyTo.xsl for details.
      
      Copyright (c) 2014, 2015 DITA Community
 
@@ -66,6 +66,8 @@
        the topic (i.e., not to a navigation topicref by key)
        are duplicated, once for each unique copy-to value 
        produced for that topic.
+       
+       Implementation TBD
     -->
   <xsl:param name="expand-reltable-refs" as="xs:string" select="'no'"/>
   <xsl:param name="isExpandReltableRefs" as="xs:boolean" 
@@ -95,6 +97,8 @@
     
     <xsl:variable name="doDebug" as="xs:boolean" select="$doDebug"/>
     
+    <xsl:call-template name="report-parameters"/>
+    
     <xsl:variable name="mapFileName" as="xs:string"
       select="relpath:getName(document-uri(.))"
     />
@@ -120,6 +124,10 @@
         <xsl:sequence select="$topicToCopyToMap"/>
       </xsl:result-document>
     </xsl:if>
+    
+    <xsl:apply-templates select="$topicToCopyToMap" mode="reportCopyToAdjustments">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+    </xsl:apply-templates>
     
     <!-- Now we know about any new or changed copy-tos.
       
@@ -158,6 +166,58 @@
     <xsl:message> + [INFO] Done.</xsl:message>
   </xsl:template>
   
+  <xsl:template name="report-parameters">
+    <xsl:message> + [INFO] ========================================</xsl:message>
+    <xsl:message> + [INFO] Adjust copy-to parameters:</xsl:message>
+    <xsl:message> + [INFO] </xsl:message>
+    <xsl:message> + [INFO] use-nav-keys: "<xsl:value-of select="$use-nav-keys"/>" (<xsl:value-of select="$isUseNavKeys"/>)</xsl:message>
+    <xsl:message> + [INFO] override-existing-copy-to: "<xsl:value-of select="$override-existing-copy-to"/>" (<xsl:value-of select="$isOverrideExistingCopyTo"/>)</xsl:message>
+    <xsl:message> + [INFO] expand-reltable-refs: "<xsl:value-of select="$expand-reltable-refs"/>" (<xsl:value-of select="$isExpandReltableRefs"/>)</xsl:message>
+    <xsl:message> + [INFO] ========================================</xsl:message>
+  </xsl:template>
+  
+  <!-- ==================================
+       Mode reportCopyToAdjustments
+       ================================== -->
+  
+  <xsl:template mode="reportCopyToAdjustments" match="topicToCopyToMap">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes"/>
+    
+    <xsl:message> + [INFO] Copy-to Adjustments:</xsl:message>
+    <xsl:choose>
+      <xsl:when test="count(mapItem/*/copyTo) = 0">
+        <xsl:message> + [INFO]   No adjustments made.</xsl:message>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:apply-templates select="mapItem" mode="#current">
+          <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+        </xsl:apply-templates>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:template>
+  
+  <xsl:template mode="reportCopyToAdjustments" match="mapItem">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes"/>
+
+    <xsl:message> + [INFO]  For topic <xsl:value-of select="key"/>:</xsl:message>
+    <xsl:apply-templates mode="#current" select="value">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+    </xsl:apply-templates>
+  </xsl:template>
+  
+  <xsl:template mode="reportCopyToAdjustments" match="value">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes"/>
+    <xsl:apply-templates mode="#current" select="copyTo">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+    </xsl:apply-templates>
+  </xsl:template>
+
+  <xsl:template mode="reportCopyToAdjustments" match="copyTo">
+    <xsl:param name="doDebug" as="xs:boolean" tunnel="yes"/>
+
+    <xsl:message> + [INFO]   copy-to: "<xsl:value-of select="@copy-to"/>" <xsl:value-of select="if (@isNew = ('true')) then '[New]' else ''"/></xsl:message>
+  </xsl:template>
+
   <!-- ==================================
        Mode updateKeydefXml
        ================================== -->
@@ -243,6 +303,9 @@
   
   <xsl:template match="/*" mode="makeCopyToMap">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
+    
+    <xsl:message> + [INFO] Analyzing topicrefs to determine copy-to adjustments...</xsl:message>
+    
 
     <topicToCopyToMap>
       <!-- Group topicrefs to topics by
@@ -260,31 +323,21 @@
       <xsl:if test="$doDebug">
           <xsl:message> + [DEBUG] Topicrefs selected for analysis:</xsl:message>
         <xsl:for-each-group 
-          select=".//*[df:isTopicRef(.) and 
-                          not(@processing-role = 'resource-only') and
-                          not(ancestor::*[contains(@chunk, 'to-content')])
-                          and @scope = 'local' and
-                          (@format = 'dita' or @format = '') and
-                          (@href != '' or @keyref != '')                          
-                          ]"
+          select=".//*[local:isCopytoCandidate(.)]"
           group-by="local:makeHrefAbsolute(.)"
           >
           <xsl:message> + [DEBUG] Group "<xsl:value-of select="current-grouping-key()"/>"</xsl:message>
           <xsl:for-each select="current-group()">
             <xsl:message> + [DEBUG] ++++</xsl:message>
-            <xsl:message> + [DEBUG] <xsl:sequence select="df:reportTopicref(.)"/></xsl:message>
-            <xsl:message> + [DEBUG] not(ancestor::*[contains(@chunk, 'to-content')]=<xsl:value-of select="not(./ancestor::*[contains(@chunk, 'to-content')])"/></xsl:message>
+            <xsl:message> + [DEBUG]   href="<xsl:sequence select="@href"/>"</xsl:message>
+            <xsl:message> + [DEBUG]   keyref="<xsl:sequence select="@keyref"/>"</xsl:message>
+            <xsl:message> + [DEBUG]   keys="<xsl:sequence select="@keys"/>"</xsl:message>
+            <xsl:message> + [DEBUG]   not(ancestor::*[contains(@chunk, 'to-content')]=<xsl:value-of select="not(./ancestor::*[contains(@chunk, 'to-content')])"/></xsl:message>
           </xsl:for-each>
         </xsl:for-each-group>
       </xsl:if>
       <xsl:for-each-group 
-        select=".//*[df:isTopicRef(.) and 
-                        not(@processing-role = 'resource-only') and
-                        not(ancestor::*[contains(@chunk, 'to-content')]) and
-                        @scope = 'local' and
-                        (@format = 'dita' or @format = '') and
-                        (@href != '' or @keyref != '')
-                        ]"
+        select=".//*[local:isCopytoCandidate(.)]"
         group-by="local:makeHrefAbsolute(.)"
         >     
         
@@ -294,6 +347,19 @@
                                select="@href"/></xsl:message>
           </xsl:message>
         </xsl:if>
+
+        <xsl:choose>
+          <xsl:when test="count(current-group()) gt 1">
+            <xsl:message> + [INFO]   Found <xsl:value-of select="count(current-group())"/> references to topic <xsl:value-of select="current-grouping-key()"/></xsl:message>
+          </xsl:when>
+          <xsl:when test="$isUseNavKeys and .[@keys != '']">
+            <xsl:message> + [INFO]   Using navigation keys, @keys value "<xsl:value-of select="./@keys"/>" (<xsl:value-of select="current-grouping-key()"/>)</xsl:message>
+          </xsl:when>
+          <xsl:otherwise>
+            <!-- Shouldn't get here -->
+          </xsl:otherwise>
+        </xsl:choose>
+
         <mapItem>
           <key><xsl:sequence select="current-grouping-key()"></xsl:sequence></key>
           <value>
@@ -309,6 +375,9 @@
         </mapItem>
       </xsl:for-each-group>      
     </topicToCopyToMap>
+
+    <xsl:message> + [INFO] Analysis complete.</xsl:message>
+
   </xsl:template>
   
   <xsl:template mode="makeCopyToMap" match="*[df:class(., 'map/topicref')]">
@@ -357,7 +426,7 @@
        the copy-to values.
        ================================== -->
   
-  <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')]">
+  <xsl:template mode="determineCopytoValue" match="*[df:class(., 'map/topicref')][@href]">
     <xsl:param name="doDebug" as="xs:boolean" select="false()" tunnel="yes"/>
     <xsl:param name="topicrefsForTopic" as="element()+" tunnel="yes"/>
     
@@ -386,11 +455,18 @@
     <xsl:variable name="hrefValue" as="xs:string" 
       select="relpath:getResourcePartOfUri(@href)"
     />
+    <xsl:variable name="existingCopyToValue" as="xs:string" 
+      select="if (@copy-to) then string(@copy-to) else ''"
+    />
     <xsl:if test="$doDebug">
       <xsl:message> + [DEBUG] isUseNavKeys="<xsl:value-of select="$isUseNavKeys"/>"</xsl:message>
     </xsl:if>
     <xsl:choose>
-      <xsl:when test="$isUseNavKeys and (@keys != '')">
+      <!-- If there is an existing copy-to value, only replace
+           it with a key if override existing copy-to is on.
+        -->
+      <xsl:when test="$isUseNavKeys and (@keys != '') and
+                      ($isOverrideExistingCopyTo or $existingCopyToValue = '')">
         <!-- Use the @keys value as the copy-to value.
           
              There are some complexities here:
@@ -412,7 +488,7 @@
            -->
         <xsl:value-of select="concat(tokenize(@keys, ' ')[1], '.dita')"/>
       </xsl:when>
-      <xsl:when test="count($precedingTopicrefs) = 0">
+      <xsl:when test="$existingCopyToValue = '' and count($precedingTopicrefs) = 0">
         <xsl:if test="$doDebug">
           <xsl:message> + [DEBUG]     First reference. Not adjusting @copy-to.</xsl:message>
         </xsl:if>
@@ -422,12 +498,9 @@
         <!-- If there's already a copy-to on the topicref and it hasn't already been used, 
              use it, otherwise, construct a new value.
         -->
-        <xsl:variable name="thisCopyTo" as="xs:string"
-          select="if (@copy-to) then @copy-to else ''"
-        />
         <xsl:choose>
-          <xsl:when test="@copy-to != '' and 
-                          (not($precedingTopicrefs[@copy-to = $thisCopyTo][. &lt;&lt; $thisTopicref]))">
+          <xsl:when test="$existingCopyToValue != '' and 
+                          (not($precedingTopicrefs[@copy-to = $existingCopyToValue][. &lt;&lt; $thisTopicref]))">
             <xsl:if test="$doDebug">
               <xsl:message> + [DEBUG]     Existing topicref value "<xsl:value-of select="@copy-to"/>" is fine. Not adjusting.</xsl:message>
             </xsl:if>
@@ -449,15 +522,15 @@
               select="format-number($ordinal, $countPicture)"
             />
             <xsl:variable name="namePart" as="xs:string" 
-              select="if ($thisCopyTo != '') 
-                         then relpath:getNamePart($thisCopyTo)
+              select="if ($existingCopyToValue != '') 
+                         then relpath:getNamePart($existingCopyToValue)
                          else relpath:getNamePart($hrefValue)" 
               
             />
             <xsl:variable name="ext" select="relpath:getExtension($hrefValue)" as="xs:string"/>
             <xsl:variable name="dir" as="xs:string"
-              select="if ($thisCopyTo != '') 
-                         then relpath:getParent($thisCopyTo)
+              select="if ($existingCopyToValue != '') 
+                         then relpath:getParent($existingCopyToValue)
                          else relpath:getParent($hrefValue)"
             />
             <xsl:variable name="copytoValue" select="relpath:newFile($dir, concat($namePart, '-', $count, '.', $ext))"/>
@@ -747,6 +820,41 @@
     />
     <xsl:variable name="result"
       select="relpath:getAbsolutePath($fullUrl)"
+    />
+    <xsl:sequence select="$result"/>
+  </xsl:function>
+  
+  <xsl:function name="local:isLocalScope" as="xs:boolean">
+    <xsl:param name="context" as="element()"/>
+    <xsl:variable name="result" as="xs:boolean"
+      select="not($context/@scope) or 
+                  $context/@scope = '' or 
+                  $context/@scope = ('local')"
+    />
+    <xsl:sequence select="$result"/>
+  </xsl:function>
+  
+  <xsl:function name="local:isDitaFormat" as="xs:boolean">
+    <xsl:param name="context" as="element()"/>
+    <xsl:variable name="result" as="xs:boolean"
+      select="(not($context/@format) or
+               $context/@format = 'dita' or 
+               $context/@format = '' 
+               )"
+    />
+    <xsl:sequence select="$result"/>
+  </xsl:function>
+  
+  <xsl:function name="local:isCopytoCandidate" as="xs:boolean">
+    <xsl:param name="context" as="element()"/>
+    <xsl:variable name="result" as="xs:boolean"
+      select="df:isTopicRef($context) and 
+              not($context/ancestor::*[df:class(., 'map/reltable')]) and
+              not($context/@processing-role = 'resource-only') and
+              not($context/ancestor::*[contains(@chunk, 'to-content')]) and
+              local:isLocalScope($context) and
+              local:isDitaFormat($context) and
+              ($context/@href != '' or $context/@keyref != '') "
     />
     <xsl:sequence select="$result"/>
   </xsl:function>

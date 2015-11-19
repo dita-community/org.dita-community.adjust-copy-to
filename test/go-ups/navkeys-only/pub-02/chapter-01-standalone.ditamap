@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Chapter 1 (Root Map)</title>
+  <mapref
+    href="chapter-01/chapter-01.ditamap"/>
+  <mapref
+    href="chapter-placeholder-keydefs.ditamap"/>
+</map>

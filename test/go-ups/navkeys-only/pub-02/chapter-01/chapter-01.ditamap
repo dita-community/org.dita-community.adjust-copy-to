@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Chapter 1 Chapter-level Map</title>
+  <topicref
+    keys="chapter-01"
+    href="topics/topic-01.dita">
+    <topicref keys="ch-01-ss-01"
+      href="../../common/topics/common-topic-01.dita"/>
+  </topicref>
+</map>

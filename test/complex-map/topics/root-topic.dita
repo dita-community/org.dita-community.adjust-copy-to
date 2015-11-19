@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_ab1_zjc_ks">
+  <title>Complex Map</title>
+  <body>
+    <p>This map uses a separate key definition submap. In addition, each navigation topicref uses @keyref to point to the topic it uses.</p>
+    <p>Note that in the 1.8.5 and 2.x before 2.1ish OTs, there is a bug in that @copy-to on a topicref that uses keyref to point to its ultimate target will not work in that the copy-to doesn't get applied to the keyref-referenced topic. However, the adjust-copy-to processing has the effect of fixing this when the copy-to attribute is updated because the map is processed twice on the second time the keyref-provided URLs have been added to the navigation topicrefs.</p>
+  </body>
+</topic>

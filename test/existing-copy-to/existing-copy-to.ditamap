@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE map PUBLIC "-//OASIS//DTD DITA Map//EN" "map.dtd">
+<map>
+ <title>Map With Pre-Specified @copy-to</title>
+  <topicref
+    href="root-topic.dita">
+    <topicref
+      copy-to="topics/chap-01.dita"
+      href="topics/topic-01.dita"
+      keys="chapter-01">
+      <topicref
+        keys="ch01-ss01"
+        copy-to="topics/chap-01-sub-01.dita"
+        href="topics/topic-03.dita"/>
+    </topicref>
+    <topicref
+      copy-to="topics/chap-02.dita"
+      keys="chapter-02"
+      href="topics/topic-02.dita">
+      <topicref
+        copy-to="topics/chap-02-sub-01.dita"
+        keys="ch02-ss01"
+        href="topics/topic-04.dita"/>
+      <topicref
+        copy-to="topics/chap-02-sub-02.dita"
+        keys="ch02-ss02"
+        href="topics/topic-03.dita"/>
+    </topicref>
+  </topicref>
+</map>

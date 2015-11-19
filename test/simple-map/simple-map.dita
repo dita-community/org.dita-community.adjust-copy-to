@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_sxn_ls5_js">
+  <title>Simple Map Adjust-Copy-To Test</title>
+  <body>
+    <p>This map is a simple map, representing only direct topicrefs to topics. It uses keys on navigation topicrefs but does not use keyrefs from navigation topicrefs to separate key definitions.</p>
+    <p>This map tests the correct functioning of the adjust-copy-to preprocessing extension in the simple case.</p>
+  </body>
+</topic>

@@ -91,13 +91,11 @@
     </xslt>
 
 
-    <!-- Update the resolved map with the one reflecting the
-         adjusted copy-tos.
+    <!-- NOTE: The debug-filter process copies the original
+         source map into the temp directory, so we have to
+         restore the augmented map after rerunning debug-filter
+         (which is what does the copy-to processing)
       -->
-    <move overwrite="true" todir="${dita.temp.dir}">
-      <fileset dir="${dita.temp.dir}" includes="**/*.ditamap.copy-to"/>
-      <mapper type="glob" from="*.ditamap.copy-to" to="*.ditamap"/>
-    </move>
     <!-- Do preprocessing for any new source-to-copy-to mappings:
 
       -->
@@ -111,6 +109,10 @@
     <!-- FIXME: I'm not sure which of these we actually need to update, so
                 doing all of them.
       -->
+    <echo>* </echo>
+    <echo>* Regenerating job-helper lists...</echo>
+    <echo>* </echo>
+
     <job-helper file="outditafiles.list" property="outditafileslist"></job-helper>
     <job-helper file="fullditamapandtopic.list" property="fullditamapandtopiclist"></job-helper>
     <job-helper file="fullditatopic.list" property="fullditatopiclist"></job-helper>
@@ -229,15 +231,25 @@
       <isset property="args.dc-adjust-copy-to.skip"></isset>
     </condition>
   </target>
+  
+  
+  <target name="dc-adjust-copy-to-restore-adjusted-map">
+    <copy overwrite="true" todir="${dita.temp.dir}">
+      <fileset dir="${dita.temp.dir}" includes="**/*.ditamap.copy-to"/>
+      <mapper type="glob" from="*.ditamap.copy-to" to="*.ditamap"/>
+    </copy>    
+  </target>
 
   <target name="adjust-copy-to.preprocess-new-copy-tos"
     depends="debug-filter,
+             dc-adjust-copy-to-restore-adjusted-map,
              copy-files,
              conrefpush,
              conref,
              move-meta-entries,
              keyref,
-             coderef"
+             coderef
+             "
   />
 
 

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_db2_dkq_ks">
+  <title>Topic 01 (Chapter 1)</title>
+  <body>
+    <p>This topic serves as the first chapter of publication 01. It may be used by other publications too.</p>
+    <p>Cross reference to chapter 2: <xref
+      keyref="chapter-02">Chapter 2 xref</xref>.</p>
+  </body>
+</topic>

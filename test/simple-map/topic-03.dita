@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE topic PUBLIC "-//OASIS//DTD DITA Topic//EN" "topic.dtd">
+<topic id="topic_ozc_ts5_js">
+  <title>Topic 03</title>
+  <body>
+    <p>This is topic 03. It is used twice within the map, once under topic 01, once under topic 02.</p>
+  </body>
+</topic>
