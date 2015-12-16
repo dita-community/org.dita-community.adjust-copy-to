@@ -1,1 +1,3 @@
 xsl/adjustCopyTo.xsl
+out/
+temp/
