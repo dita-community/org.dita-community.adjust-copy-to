@@ -139,6 +139,21 @@
       <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
     </xsl:apply-templates>
     
+    <!-- The generate-result-files mode is an extension point that 
+         enables generating additional result files during preprocessing,
+         for example, generating title-only topics for topicheads where
+         the the topicheads will then be replaced by topicrefs to the
+         generated files.
+         
+         This processing needs to be done outside the default-mode map processing
+         as you cannot generate result files when constructing the value of
+         a variable.
+         
+      -->
+    <xsl:apply-templates mode="generate-result-files" select=".">
+      <xsl:with-param name="doDebug" as="xs:boolean" tunnel="yes" select="$doDebug"/>
+    </xsl:apply-templates>
+    
     <!-- Generate the updated DITA map: -->
     <xsl:variable name="updatedMap" as="node()*">
       <xsl:apply-templates select="node()">

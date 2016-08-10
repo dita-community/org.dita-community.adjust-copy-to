@@ -40,6 +40,7 @@
        ====================================================== -->
   
   <xsl:import href="adjustCopyToImpl.xsl"/>
+  <xsl:import href="adjustCopyToExtensionsStub.xsl"/>
   
   <dita:extension id="xsl.dcAdjustCopyTo" 
     behavior="org.dita.dost.platform.ImportXSLAction" 
